@@ -1,0 +1,66 @@
+\documentclass[fontsize=12pt]{scrartcl}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{subfig}
+\usepackage{graphicx}
+\usepackage{subfiles}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage{algorithmic}
+\usepackage[top=2cm, bottom=3cm, left=2cm, right=2cm]{geometry}
+\usepackage[numbers]{natbib}
+
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{changepage}
+\usepackage{framed}
+\usepackage{multirow}
+\usepackage{diagbox}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage[table,xcdraw]{xcolor}
+
+\renewcommand{\footrulewidth}{0.4pt}
+\newcommand{\bigCI}{\mathrel{\text{\scalebox{1.07}{$\perp\mkern-10mu\perp$}}}}
+\renewcommand{\baselinestretch}{1.2}
+
+\setcounter{page}{3}
+\pagestyle{fancy}
+\hypersetup{colorlinks=true,urlcolor=black,linkcolor=black}
+\graphicspath{ {images/} }
+\lhead{}
+\chead{}
+\rhead{}
+\lfoot{Phan Ngoc Lan - 20142505}
+\cfoot{}
+\rfoot{\thepage}
+
+\title{Large-Scale Distributed Training of Deep Neural Networks for Object Detection}
+\author{Phan Ngoc Lan - 20142505}
+
+\begin{document}
+\maketitle
+\pagebreak
+
+\section*{Acknowledgments}
+
+\pagebreak
+
+\section*{Abstract}
+
+\pagebreak
+
+\tableofcontents
+\pagebreak
+
+\subfile{problem.tex}
+\subfile{theory.tex}
+\subfile{propose.tex}
+\subfile{results.tex}
+
+\bibliographystyle{plain}
+\bibliography{thesis}
+\end{document}
