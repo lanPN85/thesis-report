@@ -7,4 +7,7 @@
 
 \subsection{Computational Graphs}
 
-\subsection{Distributed Computation of Neural Networks}
+\subsection{Training Neural Networks in Parallel}
+A major drawback for deep neural networks is the computational complexity of training them. LeNet \cite{lecun1998lenet}, for example, has over 100,000 parameters, and ResNet-50 \cite{he2016resnet} has 25 million. Optimizing these parameters has often been very computationally intensive, and training even a small network such as LeNet could take several days.
+
+A breakthrough for training DNNs is the use of graphic processing units (GPUs), as first presented by Raina et al \cite{raina2009gpu}.
