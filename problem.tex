@@ -6,6 +6,8 @@ Deep neural networks (DNNs) have seen drastic progress within the past several y
 
 Training neural networks is a very computationally intensive tasks, which can take days or even weeks to complete. This makes experimenting and optimizing them very difficult. However, as DNNs process training examples in batches, they can be very scalable. Therefore, a framework that provides the capacity for large scale training can greatly improve training speed, and consequently network quality.
 
+At the same time, distributed environments make it difficult to validate and test new networks. A preferable workflow would be testing a network locally, and deploying to multiple nodes later. As such, minimizing the amount of work required to port between these workflows is also a priority. This thesis aims to design and implement a system that satisfies these criterias.
+
 \subsection{Object Detection}
 Object detection is a computer vision problem that aims to detect instances of semantic objects of a certain class (such as humans, buildings, cars, etc...) in digital images and videos. Formally, object detection is often defined as: given an input image, produce a correct set of bounding boxes and corresponding labels for each defined object within the image. An example is shown in Figure \ref{fig:obj_example}.
 
@@ -25,4 +27,4 @@ Physical documents, such as books, reports, receipts,... still hold a large amou
 
 An important task in digitizing these documents is finding the text regions. For documents with diverse structures (such as receipts or flyers), this is not trivial.
 
-This thesis approaches the text region detection problem as an object detection problem.
+This thesis approaches the text region detection problem as an object detection problem. We use this problem as a case study to showcase the use of our framework.
