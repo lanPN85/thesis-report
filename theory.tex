@@ -4,6 +4,8 @@
 \section{Machine Learning}
 Machine Learning is the study of algorithms and statistical models that perform tasks without explicit instructions, but by learning and inferring from data. Machine learning algorithms produce "models" from data during their training phase, and infer model outputs during runtime to produce results.
 
+Machine learning is a subfield within artificial intelligence. Most machine learning problems attempt to solve human-centric tasks, such as visual cognition, or language understanding, etc,... Since machine learning is approximate by nature, problems that would require machine learning solutions are often NP or incomputable.
+
 \section{Neural Networks \& Deep Learning}
 \subsection{Object Detection With Convolutional Neural Networks}
 
@@ -38,6 +40,8 @@ By seperating graph definition and the actual runtime, these early frameworks ca
 
 On the other hand, compiled graphs are often criticized for their steep learning curve and being difficult to debug. Since the framework runtime completely takes over execution and even modifies the graph during optimization, it's often difficult to keep track of results and errors. This motivated the creation of dynamic graph frameworks, most notably PyTorch (2017) \cite{paszke2017pytorch} and Chainer (2015) \cite{tokui2015chainer}. These frameworks simply constructs graphs \emph{on the go}, alongside the actual calculations. This has the benefit of being easier to grasp, and operations can be transparently observed instead of obscured during execution. However, they suffer from fewer optimizations and lower portablility.
 
+Despite their differences, static and dynamic graph frameworks have shown a tendency to overlap in recent years. Namely, TensorFlow 2.0 introduced Eager Execution, which attempts to create a smoother, dynamic experimental workflow. In contrast, PyTorch 1.0 added Script Mode in order to support compiled graphs, a feature that used to be delegated to conversion to Caffe 2. In the end, we can expect these libraries to provide both an intuitive development experience and optimized for production.
+
 On top of these frameworks, multiple tools and interfaces have been proposed in recent years to help simplifying their workflow. High-level libraries like Keras \cite{chollet2015keras} allows intermediate users to interact more easily with TensorFlow, Theano and CNTK, while tools such as NVIDIA DIGITS create a streamlined workflow for multiple frameworks.
 
 \section{Training Neural Networks in Parallel}
@@ -52,7 +56,9 @@ From a parallel computing perspective, optimizing neural networks has a lot of p
 	\label{fig:allreduce}
 \end{figure}
 
-A more efficient method called "Ring Allreduce" was proposed by researchers at Baidu \cite{baiduAllreduce}. As the name suggests, this method puts nodes into a "ring". When the reduce operation is called, the first node sends its gradient to node 2, where it's reduced with node 2's gradient. This result is then sent to node 3 and so on. When all nodes are reached, node 1 would contain the final gradient. We would then make another pass around the ring to update all nodes with the new gradient.
+A more efficient method called "Ring Allreduce" was proposed by researchers at Baidu \cite{baiduAllreduce}. As the name suggests, this method places nodes sequentially into a "ring". When the reduce operation is called, the first node sends its gradient to node 2, where it's reduced with node 2's gradient. This result is then sent to node 3 and so on. When all nodes are reached, node 1 would contain the final gradient. We would then make another pass around the ring to update all nodes with the new gradient.
+
+Something to take note of is the effect of this paradigm on the training results itself. Since we are running each replica on different batches, the model is essentially training with a larger batch size. Multiple works, for example \cite{chen2012pipelined}, have observed that huge batches can hinder a network's learning process, especially in early iterations. This puts somewhat of an upper limit to the scalability of this approach.
 
 \begin{figure}[htp]
 	\centering
@@ -60,21 +66,34 @@ A more efficient method called "Ring Allreduce" was proposed by researchers at B
 	\caption{Ring Allreduce}
 	\label{fig:ring_allreduce}
 \end{figure}
+\FloatBarrier
 
-Another approach, as implemented by the authors of the DistBelief framework \cite{dean2012large}, is to distribute the network graph on multiple nodes (Figure \ref{fig:model_parallel}). This approach is often suited for networks with very "wide" layers.
+Another approach, as implemented by the authors of the DistBelief framework \cite{dean2012large}, is to distribute the network graph vertically on multiple nodes (Figure \ref{fig:model_parallel}). This "striping" appproach avoids constant synchronization between nodes, but also only applicable to large, wide networks whose layers can be efficiently split.
 
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.7\textwidth]{model_parallel.png}
-	\caption{Model parallelism in DistBelief}
+	\caption{Model parallelism in DistBelief \cite{dean2012large}}
 	\label{fig:model_parallel}
 \end{figure}
 
+Finally, a strategy called "pipeline backpropagation" was investigated by the authors in \cite{petrowski1993performance}. The idea is similar to striping, where the network graph is distributed across nodes. However, this method partitions the graph horizontally, where each node contains one or several full layers, forming a data pipeline. During training, each node works independently on their own data, disregarding the current state of the whole graph. Updates are performed with a delay, which become more noticeable at deeper layers of the network.
+
 \subsection{Using Graphics Processing Units}
-A breakthrough for training DNNs was the use of Graphic Processing Units (GPUs), as first presented by Raina et al \cite{raina2009gpu}in 2009. Similar to graphics processing, neural networks are trained using operations on large matrices, which benefit from GPUs' multi-core design. Since then, the toolchain for GPU-accelerated neural network has matured significantly. Libraries such as CUDA, CUDNN \cite{chetlur2014cudnn}, and high level interfaces have made training of neural networks on GPUs trivial.
+A breakthrough for training DNNs was the use of Graphic Processing Units (GPUs), as first presented by Raina et al \cite{raina2009gpu} in 2009. Similar to graphics processing, neural networks are trained using operations on large matrices, which benefit from GPUs' multi-core design. Since then, the toolchain for GPU-accelerated neural network has matured significantly. Libraries such as CUDA, CUDNN \cite{chetlur2014cudnn}, and high level interfaces have made training of neural networks on GPUs trivial.
 
 All of the frameworks mentioned in \ref{section:dlframeworks} allows execution on GPUs, the majority of which rely on NVIDIA's CUDA and CUDNN libraries.
 
 \subsection{Using Computing Clusters}
 While GPUs have greatly improved DNN training speed, modern networks continue to be even more complex, along with larger training datasets. This requires more scalable training mechanisms, particularly on multiple devices. One approach, as seen with Google's Tensor Processing Units (TPUs) \cite{jouppi2017datacenter}, is building custom hardware that are designed to work as clusters. Indeed, TPUs are very efficient and performant. However, this approach is expensive and requires a lot of effort for deployment. A more compact, user-friendly approach is to make use of existing GPUs and computer architectures. This can be done using a software layer that handles communication between GPUs/CPUs on different machines.
 
+Support for multi-node and multi-GPU training are available in most DL frameworks, most notably TensorFlow (which utilizes Google's gRPC protocol) and PyTorch (which support several communication backends, including the popular MPI \cite{Forum:1994:MMI:898758} interface). Both implement parallelization using the data parallel approach (with Allreduce), as this is the most general solution that can apply to most neural networks.
+
+In 2018, researchers at Uber released Horovod \cite{DBLP:journals/corr/abs-1802-05799}, a library providing a unified interface for parallel training with TensorFlow, Keras, PyTorch and MXNet. Horovod utilizes MPI for communication, and implements Baidu's Ring Allreduce. Horovod's notable feature is that it requires minimal changes to existing single-node codebases.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{horovod-bm.png}
+	\caption{Benchmarks for training several neural networks on multiple GPUs with Horovod}
+	\label{fig:horovod_bm}
+\end{figure}
