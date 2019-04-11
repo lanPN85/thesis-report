@@ -1,16 +1,20 @@
-\documentclass[fontsize=12pt]{scrartcl}
-
+\documentclass[a4paper,12pt]{report}
+\usepackage{amsfonts}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{comment}
+\usepackage[utf8]{vietnam}
 \usepackage{amssymb}
-\usepackage{amsmath}
 \usepackage{url}
 \usepackage{subfig}
+\usepackage{fancybox}
+\usepackage{multirow}
+\usepackage{multicol}
 \usepackage{graphicx}
 \usepackage{subfiles}
 \usepackage[linesnumbered,ruled,vlined]{algorithm2e}
 \usepackage{algorithmic}
 \usepackage[top=2cm, bottom=3cm, left=2cm, right=2cm]{geometry}
 \usepackage[numbers]{natbib}
-
 \usepackage{fancyhdr}
 \usepackage{hyperref}
 \usepackage{changepage}
@@ -22,6 +26,29 @@
 \usepackage{listings}
 \usepackage{multirow}
 \usepackage[table,xcdraw]{xcolor}
+\usepackage{float}
+\usepackage{subfig}
+\usepackage[english]{babel}
+
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=blue,
+    urlcolor=red 
+}
+\setlength{\parskip}{0.6em}
+
+\makeatletter
+\newcommand{\vast}{\bBigg@{4}}
+\newcommand{\Vast}{\bBigg@{5}}
+\newcommand{\vastl}{\mathopen\vast}
+\newcommand{\vastm}{\mathrel\vast}
+\newcommand{\vastr}{\mathclose\vast}
+\newcommand{\Vastl}{\mathopen\Vast}
+\newcommand{\Vastm}{\mathrel\Vast}
+\newcommand{\Vastr}{\mathclose\Vast}
+\makeatother
 
 \renewcommand{\footrulewidth}{0.4pt}
 \newcommand{\bigCI}{\mathrel{\text{\scalebox{1.07}{$\perp\mkern-10mu\perp$}}}}
@@ -34,22 +61,75 @@
 \lhead{}
 \chead{}
 \rhead{}
-\lfoot{Phan Ngoc Lan - 20142505}
+\lfoot{Phan Ngoc Lan}
 \cfoot{}
 \rfoot{\thepage}
 
-\title{Large-Scale Distributed Training of Deep Neural Networks for Object Detection}
-\author{Phan Ngoc Lan - 20142505}
+\title{BK.Synapse: Distributed Training of Deep Neural Networks for Object Detection}
+\author{Phan Ngoc Lan}
 
 \begin{document}
-\maketitle
+% \maketitle
+\thispagestyle{empty}
+\thisfancypage{
+\setlength{\fboxrule}{1pt}
+\doublebox}{}
+
+\begin{center}
+    {\fontsize{12}{19}\fontfamily{cmr}\selectfont MINISTRY OF EDUCATION\\
+     \textbf{HANOI UNIVERSITY OF SCIENCE AND TECHNOLOGY}}\\
+     \begin{tabular}{lll}
+    
+    &   &                   \\
+    &   &                   \\
+    &   &                   \\
+    &   &                   \\
+    &   &                   \\
+    &   &                   \\
+    
+    \end{tabular}
+    
+    \includegraphics[width=0.2\textwidth]{hust.jpeg}\\[1.3cm]
+    {\fontsize{12}{43}\fontfamily{cmr}\selectfont \textbf{PHAN NGỌC LÂN} }\\[0.1cm]
+     \begin{tabular}{lll}
+    
+    &   &                   \\
+    &   &                   \\
+    
+    \end{tabular}
+
+    {\fontsize{12}{10}\fontfamily{cmr}\fontseries{b}\selectfont \textbf{GRADUATION THESIS} }\\[0.1cm]
+
+    \begin{tabular}{lll}
+    &   &                   \\
+    \end{tabular}
+    
+    {\fontsize{14}{18}\fontfamily{cmr}\selectfont \textbf{BK.SYNAPSE: DISTRIBUTED TRAINING OF DEEP NEURAL NETWORKS FOR OBJECT DETECTION} }\\[0.9cm]
+    
+    \begin{table}[ht]
+    \centering
+    \label{my-label}
+    \begin{tabular}{lll}
+                   
+    \textbf{Instructor:} & Dr. ĐINH VIẾT SANG\\
+    
+    \end{tabular}
+    \end{table} 
+    \vspace{4cm}
+    \fontsize{12}{19}\fontfamily{cmr}\selectfont Hanoi, 5 - 2019
+\end{center}
 \pagebreak
 
-\section*{Acknowledgments}
+\selectlanguage{english}
+\fontsize {13pt}{16pt}
+\selectfont
+% \pagenumbering{roman}
+
+\chapter*{Acknowledgments}
 
 \pagebreak
 
-\section*{Abstract}
+\chapter*{Abstract}
 
 \pagebreak
 
@@ -61,7 +141,7 @@
 \subfile{propose.tex}
 \subfile{results.tex}
 
-\section{Conclusions}
+\chapter{Conclusions}
 
 \pagebreak
 \bibliographystyle{plain}

@@ -1,14 +1,14 @@
 \documentclass[thesis.tex]{subfiles}
 
-\section{Theoretical Overview \& Related Works}
-\subsection{Machine Learning}
+\chapter{Theoretical Overview \& Related Works}
+\section{Machine Learning}
 Machine Learning is the study of algorithms and statistical models that perform tasks without explicit instructions, but by learning and inferring from data. Machine learning algorithms produce "models" from data during their training phase, and infer model outputs during runtime to produce results.
 
-\subsection{Neural Networks \& Deep Learning}
-\subsubsection{Object Detection With Convolutional Neural Networks}
+\section{Neural Networks \& Deep Learning}
+\subsection{Object Detection With Convolutional Neural Networks}
 
-\subsection{Computational Graphs \& Deep Learning Frameworks}
-\subsubsection{Computational Graphs}
+\section{Computational Graphs \& Deep Learning Frameworks}
+\subsection{Computational Graphs}
 Although they are commonly visualized as layers of neurons, neural networks are more often represented as computational graphs.
 
 Computational graphs are directed graphs that express a series of computations. Each node is either an input variable, or, when there are incoming edges, a function of those edges' tail nodes. Edges simply denote dependencies between nodes (eg. $a = b + c$).
@@ -31,7 +31,7 @@ It is trivial to traverse the graph from all input nodes to calculate its output
 
 The fact that neural networks can be modeled as computational graphs has several implications. Most significantly, it means that backpropagation can be done automatically, assuming each op is differentiable. This greatly reduces the amount of work required when designing network architectures, as only the forward pass need to be defined. Moreover, graph optimization methods can be applied to their architectures, allowing them to be more compact and efficient.
 
-\subsubsection{Deep Learning Frameworks} \label{section:dlframeworks}
+\subsection{Deep Learning Frameworks} \label{section:dlframeworks}
 The use of computational graphs for deep learning became prevalent in part due to the multiple frameworks that leverage them for automatic gradient calculations. Two of the earliest were Theano (2010) \cite{bergstra2010theano} and Caffe (2014) \cite{jia2014caffe}, followed by Google's TensorFlow (2016) \cite{abadi2016tensorflow}, which remains the most popular framework to date. These tools define the same 2-phase workflow for running neural networks: the first phase where the computational graph is symbolically defined, and the second phase where numerical input is fed to the runtime to execute the graph.
 
 By seperating graph definition and the actual runtime, these early frameworks can apply several optimizations during graph "compilation". This also helps improve performance, since definition is often done in the Python language, while the runtime can be written in lower-level, more performant languages (eg. C, C++,...). Finally, since the graph is finalized after compilation and is essentially data, they are portable and serializable, which helps deployment at scale.
@@ -40,7 +40,7 @@ On the other hand, compiled graphs are often criticized for their steep learning
 
 On top of these frameworks, multiple tools and interfaces have been proposed in recent years to help simplifying their workflow. High-level libraries like Keras \cite{chollet2015keras} allows intermediate users to interact more easily with TensorFlow, Theano and CNTK, while tools such as NVIDIA DIGITS create a streamlined workflow for multiple frameworks.
 
-\subsection{Training Neural Networks in Parallel}
+\section{Training Neural Networks in Parallel}
 A major drawback for deep neural networks is the computational complexity of training them. LeNet (1998) \cite{lecun1998lenet}, for example, has over 100,000 parameters, while ResNet-50 (2016) \cite{he2016resnet} has 25 million. Optimizing these parameters over many iterations is very computationally intensive, and training even a small network such as LeNet could take several days on standard CPUs.
 
 From a parallel computing perspective, optimizing neural networks has a lot of potential optimizations. A common approach is running training examples in parallel. In each iteration, gradients are calculated for different data batches in each node, then reduced into the final update values for the model. The reduce procedure is critical in this approach, as it determines the communication overhead for each iteration. The most straightforward method would be using master nodes (often denoted parameter servers), where gradients are collected and reduced. However, this creates a bottleneck at the parameter servers themselves, and forces another level of communication if multiple parameter servers are used. 
@@ -70,11 +70,11 @@ Another approach, as implemented by the authors of the DistBelief framework \cit
 	\label{fig:model_parallel}
 \end{figure}
 
-\subsubsection{Using Graphics Processing Units}
+\subsection{Using Graphics Processing Units}
 A breakthrough for training DNNs was the use of Graphic Processing Units (GPUs), as first presented by Raina et al \cite{raina2009gpu}in 2009. Similar to graphics processing, neural networks are trained using operations on large matrices, which benefit from GPUs' multi-core design. Since then, the toolchain for GPU-accelerated neural network has matured significantly. Libraries such as CUDA, CUDNN \cite{chetlur2014cudnn}, and high level interfaces have made training of neural networks on GPUs trivial.
 
 All of the frameworks mentioned in \ref{section:dlframeworks} allows execution on GPUs, the majority of which rely on NVIDIA's CUDA and CUDNN libraries.
 
-\subsubsection{Using Computing Clusters}
+\subsection{Using Computing Clusters}
 While GPUs have greatly improved DNN training speed, modern networks continue to be even more complex, along with larger training datasets. This requires more scalable training mechanisms, particularly on multiple devices. One approach, as seen with Google's Tensor Processing Units (TPUs) \cite{jouppi2017datacenter}, is building custom hardware that are designed to work as clusters. Indeed, TPUs are very efficient and performant. However, this approach is expensive and requires a lot of effort for deployment. A more compact, user-friendly approach is to make use of existing GPUs and computer architectures. This can be done using a software layer that handles communication between GPUs/CPUs on different machines.
 
