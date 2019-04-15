@@ -18,9 +18,67 @@ The key difference between machine learning and the above fields is their goals.
 \subsubsection{Types of learning}
 There are several types of learning algorithms, including: supervised learning, unsupervised learning, semi-supervised learning, and reinforcement learning.
 
-Supervised algorithms learn from a dataset containing both the inputs and desired outputs (labels). The trained model contains a function that associates any given input with an output, and aims to produce correct outputs for both seen and unseen data. Two sub-types of supervised learning are regression (where the output is a continuous value) and classification (where the output is one or several discrete classes).
+Supervised algorithms learn from a dataset containing both the inputs and desired outputs (labels). The trained model contains a function that associates any given input with an output, and aims to produce correct outputs for both seen and unseen data. Two sub-types of supervised learning are regression (where the output is a continuous value) and classification (where the output is one or several discrete classes). Common supervised learning algorithms include Naive Bayes classification, Support Vector Machines (SVMs), Decision Trees and Neural Networks. This is the most common type of machine learning, used in domains such as image classification, sentiment analysis, or speech recognition, etc,...
 
-Unsupervised algorithms, on the other hand, make use of unlabeled data, where only the input is known. Often, the goal for these models is to learn a relationship between the examples. Instead of responding to feedback, unsupervised learning algorithms identify commonalities in the data and react based on the presence or absence of such commonalities in each new piece of data.
+Semi-supervised algorithms are similar, however they are designed to handle missing labels or very small datasets, often by making heuristic assumptions for the problem.
+
+Unsupervised algorithms, on the other hand, make use of unlabeled data, where only the input is known. Often, the goal for these models is to learn a relationship between the examples. Instead of responding to feedback, unsupervised learning algorithms identify commonalities in the data and react based on the presence or absence of such commonalities in each new piece of data. Popular unsupervised methods include k-means Clustering, and Neural Autoencoders. A major application for unsupervised learning is cluster analysis, in which entities (such as users, products, etc,...) can be classified into groups based on their features.
+
+Finally, reinforcement learning algorithms are modeled as agents within an environment. The environment provides feedback to the agent's actions, which are interpreted as reward values (Figure \ref{fig:rl-model}). The goal in reinforcement learning is to learn a policy for the agent to perform which optimizes its reward, and ultimately achieve its task. Notable applications of reinforcement learning include self-driving cars and game-playing AIs (eg. Google's AlphaGo \cite{silver2016alphago}).
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.75\textwidth]{rl-model.png}
+	\caption{General model for reinforcement learning}
+	\label{fig:rl-model}
+\end{figure}
+
+\subsubsection{Feature extraction}
+A key phase in training any machine learning model is representing the training examples in a format suitable for the model. This process is called feature extraction.
+
+Feature extraction heavily relies on both the problem domain and the algorithm being used. On one hand, an example should be represented such that there's sufficient information for models to learn, while at the same time avoiding noisy features which can cause false correlation. As an example, to train a model predicting a person's height, their weight and gender could be considered good features, while their marital status would be a bad feature. On the other hand, each ML algorithm has specific requirements and advantages in terms of input data. Naive Bayes and Decision Tree classifiers, for example, only accepts discrete values as input, while SVMs and Neural Networks only work with continous values.
+
+Several common techniques are utilized in feature extraction:
+
+\begin{itemize}
+	\item Normalization/Scaling: To negate the effect of uneven value ranges between features, these values are often normalized to a range between 0 to 1 (or -1 to 1), with regards to the mean value for that feature.
+	\item Discretization: To allow discrete models to work with continous features, discretization techniques are often applied. A common method is to split the value range into small sub-ranges.
+	\item Embedding: Conversely, discrete features are often transformed into continous vectors, dubbed embedding vectors. Intuitively, embedding vectors seek to approximate the relationships between their respective discrete values (eg. relations between different words). This is often achieved using some form of unsupervised learning. The most widely used form of embedding vectors is Word2Vec \cite{mikolov2013distributed} for word representation (Figure \ref{fig:word2vec}).
+\end{itemize}
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{word2vec.png}
+	\caption{Visualization of word2vec embeddings}
+	\label{fig:word2vec}
+\end{figure}
+
+\subsubsection{Partioning datasets}
+Evaluating the effectiveness of ML models differ from other algorithms and statistical models. In this section, we focus on evaluating supervised models.
+
+Supervised ML models are trained on a training dataset, however the goal is to produce accurate predictions on unseen data outside this training set. Hence, it's impossible to evaluate on training data, otherwise a model that "learns" by simply memorizing the training set would score perfectly, yet unusable. As such, a subset of labeled data is set aside from training as the test dataset, which only serves to evaluate the model.
+
+Additionally, many models have hyperparameters that require selection, often by experiment. This selection should also be done on unseen data, yet it's unfair to use the test set as this simply picks out whichever parameter set that happens to fit the test distribution. Instead, a seperate validation dataset is held out for this purpose.
+
+For large datasets, a straightforward split of 3 datasets is often made with a ratio of around 70/15/15 for training, validation and testing. In smaller datasets, an alternate approach is $k$-fold cross validation, where the entire dataset is split into $k$ equal parts (folds). Training is then performed $k$ times, each using one fold as the validation and test set, and the rest as the training set. Evaluation results are then averaged among all runs.
+
+When splitting datasets, it can sometimes be important to maintain the distribution of classes or other feature properties in the original data. This technique is called stratified sampling, and is especially critical for datasets that are unevenly distributed.
+
+\subsubsection{Evaluation metrics}
+Different metrics are used to evaluate machine learning models, depending on the problem domain. Most often, metrics focus on how accurate the model is in performing the given task, however can also include other requirements like efficiency, robustness, scalability or interpretability.
+
+For classification models, the most common metric is accuracy, which measures the ratio of correct classifications made by the model. However, this metric can be noisy on unbalanced datasets. Specifically, if $90\%$ of the dataset belongs to class A, then a classifier that always predicts class A would have $90\%$ accuracy (!). Therefore, 3 other metrics are usually added to evaluation: precision, recall, and F1 score.
+
+Precision measures the ratio between true positives (number of accurate predictions made by the model for one class) to all predictions in that class. Recall measures the ratio between true positives for a class and all examples labeled as that class. Finally, F1 score is the harmonic mean between precision and recall. Calculating these metrics is often done using a confusion matrix (Figure \ref{fig:confusion-mat}).
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.5\textwidth]{confusion-mat.png}
+	\caption{A confusion matrix}
+	\label{fig:confusion-mat}
+\end{figure}
+
+In essence, precision measures how likely each 
 
 \section{Neural Networks \& Deep Learning}
 \subsection{Object Detection With Convolutional Neural Networks}
@@ -106,10 +164,3 @@ While GPUs have greatly improved DNN training speed, modern networks continue to
 Support for multi-node and multi-GPU training are available in most DL frameworks, most notably TensorFlow (which utilizes Google's gRPC protocol) and PyTorch (which support several communication backends, including the popular MPI \cite{Forum:1994:MMI:898758} interface). Both implement parallelization using the data parallel approach (with Allreduce), as this is the most general solution that can apply to most neural networks.
 
 In 2018, researchers at Uber released Horovod \cite{DBLP:journals/corr/abs-1802-05799}, a library providing a unified interface for parallel training with TensorFlow, Keras, PyTorch and MXNet. Horovod utilizes MPI for communication, and implements Baidu's Ring Allreduce. Horovod's notable feature is that it requires minimal changes to existing single-node codebases.
-
-\begin{figure}[htp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{horovod-bm.png}
-	\caption{Benchmarks for training several neural networks on multiple GPUs with Horovod}
-	\label{fig:horovod_bm}
-\end{figure}
