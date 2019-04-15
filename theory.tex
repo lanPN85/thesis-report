@@ -33,27 +33,27 @@ Finally, reinforcement learning algorithms are modeled as agents within an envir
 	\label{fig:rl-model}
 \end{figure}
 
-\subsubsection{Feature extraction}
-A key phase in training any machine learning model is representing the training examples in a format suitable for the model. This process is called feature extraction.
+% \subsubsection{Feature extraction}
+% A key phase in training any machine learning model is representing the training examples in a format suitable for the model. This process is called feature extraction.
 
-Feature extraction heavily relies on both the problem domain and the algorithm being used. On one hand, an example should be represented such that there's sufficient information for models to learn, while at the same time avoiding noisy features which can cause false correlation. As an example, to train a model predicting a person's height, their weight and gender could be considered good features, while their marital status would be a bad feature. On the other hand, each ML algorithm has specific requirements and advantages in terms of input data. Naive Bayes and Decision Tree classifiers, for example, only accepts discrete values as input, while SVMs and Neural Networks only work with continous values.
+% Feature extraction heavily relies on both the problem domain and the algorithm being used. On one hand, an example should be represented such that there's sufficient information for models to learn, while at the same time avoiding noisy features which can cause false correlation. As an example, to train a model predicting a person's height, their weight and gender could be considered good features, while their marital status would be a bad feature. On the other hand, each ML algorithm has specific requirements and advantages in terms of input data. Naive Bayes and Decision Tree classifiers, for example, only accepts discrete values as input, while SVMs and Neural Networks only work with continuous values.
 
-Several common techniques are utilized in feature extraction:
+% Several common techniques are utilized in feature extraction:
 
-\begin{itemize}
-	\item Normalization/Scaling: To negate the effect of uneven value ranges between features, these values are often normalized to a range between 0 to 1 (or -1 to 1), with regards to the mean value for that feature.
-	\item Discretization: To allow discrete models to work with continous features, discretization techniques are often applied. A common method is to split the value range into small sub-ranges.
-	\item Embedding: Conversely, discrete features are often transformed into continous vectors, dubbed embedding vectors. Intuitively, embedding vectors seek to approximate the relationships between their respective discrete values (eg. relations between different words). This is often achieved using some form of unsupervised learning. The most widely used form of embedding vectors is Word2Vec \cite{mikolov2013distributed} for word representation (Figure \ref{fig:word2vec}).
-\end{itemize}
+% \begin{itemize}
+% 	\item Normalization/Scaling: To negate the effect of uneven value ranges between features, these values are often normalized to a range between 0 to 1 (or -1 to 1), with regards to the mean value for that feature.
+% 	\item Discretization: To allow discrete models to work with continuous features, discretization techniques are often applied. A common method is to split the value range into small sub-ranges.
+% 	\item Embedding: Conversely, discrete features are often transformed into continuous vectors, dubbed embedding vectors. Intuitively, embedding vectors seek to approximate the relationships between their respective discrete values (eg. relations between different words). This is often achieved using some form of unsupervised learning. The most widely used form of embedding vectors is Word2Vec \cite{mikolov2013distributed} for word representation (Figure \ref{fig:word2vec}).
+% \end{itemize}
 
-\begin{figure}[htp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{word2vec.png}
-	\caption{Visualization of word2vec embeddings}
-	\label{fig:word2vec}
-\end{figure}
+% \begin{figure}[htp]
+% 	\centering
+% 	\includegraphics[width=0.9\textwidth]{word2vec.png}
+% 	\caption{Visualization of word2vec embeddings}
+% 	\label{fig:word2vec}
+% \end{figure}
 
-\subsubsection{Partioning datasets}
+\subsubsection{Partitioning datasets}
 Evaluating the effectiveness of ML models differ from other algorithms and statistical models. In this section, we focus on evaluating supervised models.
 
 Supervised ML models are trained on a training dataset, however the goal is to produce accurate predictions on unseen data outside this training set. Hence, it's impossible to evaluate on training data, otherwise a model that "learns" by simply memorizing the training set would score perfectly, yet unusable. As such, a subset of labeled data is set aside from training as the test dataset, which only serves to evaluate the model.
@@ -74,13 +74,57 @@ Precision measures the ratio between true positives (number of accurate predicti
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.5\textwidth]{confusion-mat.png}
-	\caption{A confusion matrix}
+	\caption{
+		A confusion matrix\\(TP: true positive, FP: false positive, FN: false negative, TN: true negative)}
 	\label{fig:confusion-mat}
 \end{figure}
+\FloatBarrier
 
-In essence, precision measures how likely each 
+More specifically, these metrics are calculated as follows:
+\begin{align}
+	& Precision_i = \frac{TP_i}{TP_i + FP_i}\\
+	& Recall_i = \frac{TP_i}{TP_i + FN_i}\\
+	& F_1^i = 2 \frac{Precision_i \cdot Recall_i}{Precision_i + Recall_i}
+\end{align}
+
+In essence, precision penalizes a model when making false predictions of the given class, while recall penalizes a model's inability to cover all examples of that class. A model that tries to "cheat" in one metric or class (like how our hypothetical "always A" model would have perfect recall for class A) invariably lower other metrics (its precision and recall for classes that aren't A would be zero), thus still having a low F1 score.
 
 \section{Neural Networks \& Deep Learning}
+\subsection{Artificial Neural Networks}
+Artificial neural networks (commonly referred to as neural networks) are a class of machine learning models inspired by the way biological neural systems process data.
+
+A biological neural network is composed of a group or groups of chemically connected or functionally associated neurons. A single neuron may be connected to many other neurons and the total number of neurons and connections in a network may be extensive. Connections, called synapses, are usually formed from axons to dendrites, though dendrodendritic synapses and other connections are possible. Information (stimuli) propagates through the connections between neurons and eventually processed into cognitive information.
+
+Artificial neural networks employ a much more simplified approximation of this process, where neurons are replaced with simple computational units that perform transformation operations on input data. Despite each neuron's simplicity, the amount of neurons along with their connections allow neural networks to represent incredibly complex functions.
+
+The first neural network was proposed in 1958 by Frank Rosenblatt \cite{rosenblatt1958perceptron}, called the Perceptron (Figure \ref{fig:perceptron}). A perceptron is basically a single neuron, which consists of a set of weights $W = (w_0,..., w_n)$ and an activation function $f(x)$ (in this case the unit step function). With a continuous vector $X = (1, x_1,..., x_n)$ as input, the output of a perceptron is represented by the function:
+
+\begin{equation}
+	y = f(W \cdot X)	
+\end{equation}
+
+In the first perceptron, $y \in \{-1, 1\}$, which corresponds to a binary classification of "no" or "yes". Given a training dataset with examples $X_a = (X_1, ..., X_n)$ and labels $Y = (y_1, ..., y_n)$, the problem becomes finding a set of values for $W$ such that $\sum_{i=0}^n(y_i = f(W \cdot X_i)) \rightarrow max$.
+
+We can model the way this perceptron classify examples as creating a decision boundary on the feature space (Figure \ref{fig:decision_bound}).
+
+It can be seen that a value of 1 is added to the input, along with an extra weight $w_0$. This is the bias value, which allows the perceptron to model constant offsets in the output function. In other words, it allows the decision boundary to move along the axes.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{decision_bound.png}
+	\caption{Example of a decision boundary on a 2D feature space}
+	\label{fig:decision_bound}
+\end{figure}
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.5\textwidth]{perceptron.png}
+	\caption{Diagram for a single layer binary classification perceptron}
+	\label{fig:perceptron}
+\end{figure}
+
+\subsection{Convolutional Neural Networks}
+
 \subsection{Object Detection With Convolutional Neural Networks}
 
 \section{Computational Graphs \& Deep Learning Frameworks}
