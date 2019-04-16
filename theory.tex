@@ -153,7 +153,7 @@ where $f_i$ is the layer's activation function, and $W_i$ is the layer's weight 
 \subsubsection{Backpropagation}
 Neural networks learn from examples using backpropagation. As the name implies, backpropagation works by tracing back from the output layer. Given a training example $X = (x_1,...,x_n)$ and the label $Y$, we first get the network's prediction $y$ using the forward pass. The general idea is to "propagate" the error signal between $y$ and $Y$ to the whole network, or in other words, update the network to decrease prediction error.
 
-The error signal is calculated using a loss function. Different problems can employ different loss functions. Typically, regression problems employ Mean Squared Error (MSE), while classification problems use the Cross Entropy function. Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
+The error signal is calculated using a loss function. Different problems may utilize different loss functions. Typically, regression problems employ Mean Squared Error (MSE), while classification problems use the Cross Entropy function. Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
 
 In order to update the network, we need to know the values with which to update each neuron.
 
