@@ -103,25 +103,59 @@ The first neural network was proposed in 1958 by Frank Rosenblatt \cite{rosenbla
 	y = f(W \cdot X)	
 \end{equation}
 
-In the first perceptron, $y \in \{-1, 1\}$, which corresponds to a binary classification of "no" or "yes". Given a training dataset with examples $X_a = (X_1, ..., X_n)$ and labels $Y = (y_1, ..., y_n)$, the problem becomes finding a set of values for $W$ such that $\sum_{i=0}^n(y_i = f(W \cdot X_i)) \rightarrow max$.
-
-We can model the way this perceptron classify examples as creating a decision boundary on the feature space (Figure \ref{fig:decision_bound}).
-
-It can be seen that a value of 1 is added to the input, along with an extra weight $w_0$. This is the bias value, which allows the perceptron to model constant offsets in the output function. In other words, it allows the decision boundary to move along the axes.
-
-\begin{figure}[htp]
-	\centering
-	\includegraphics[width=0.7\textwidth]{decision_bound.png}
-	\caption{Example of a decision boundary on a 2D feature space}
-	\label{fig:decision_bound}
-\end{figure}
-
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.5\textwidth]{perceptron.png}
 	\caption{Diagram for a single layer binary classification perceptron}
 	\label{fig:perceptron}
 \end{figure}
+\FloatBarrier
+
+The idea of the perceptron eventually expanded into multi layer perceptrons, or better known as artificial neural networks. Architecturally, they differ in that there are multiple "neurons" (or computational units) as opposed to one, and they are divided into layers (Figure \ref{fig:nnet}).
+
+Three types of layer are present in a neural net: the input layer, hidden layers, and the output layer. The input layer is the representation of input data, where each unit simply contains the feature value of an example. Thus, this layer is bound by the size of our feature representation. The hidden layers are transformations performed by the network on the input, each working similarly to a perceptron. Finally, the output layer contains the output values of the network. Typically, this layer returns the values we wish to use as the final result, or values that can be inferred to produce it.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.5\textwidth]{nnet.png}
+	\caption{Architecture of a 4-layer neural network}
+	\label{fig:nnet}
+\end{figure}
+
+Neural networks implement 2 primary procedures: forward pass and backpropagation.
+
+\subsubsection{Forward pass}
+The forward pass is used to get output results from a neural network. Starting with an input example $X = (x_1,...,x_n)$ at the input layer, we iterate through subsequent layers one by one, calculating the output at each pass (Algorithm \ref{alg:fwd_pass}). The output for layer $i$ is defined by:
+
+\begin{equation}
+	y_i = f_i(y_{i-1} \cdot W_i)	
+\end{equation}
+where $f_i$ is the layer's activation function, and $W_i$ is the layer's weight matrix. The size of $W_i$ corresponds to the number of neurons at layers $i$ and $i - 1$.
+
+\begin{algorithm}[bth]
+	\SetAlgoLined
+	\caption{Forward pass} \label{alg:fwd_pass}
+	\Input{$X = (x_1,...,x_n)$: a set of input features\\
+		$L = ((W_1, f_1),...,(W_m, f_m))$: the network's layers
+		}
+	\Output {
+		$y_m$: the network's prediction
+	}
+
+	$y_0 \gets X$ \\
+	\For{$(W_i, f_i) \in L$} {
+		$y_i \gets f_i(y_{i-1} \cdot W_i)$
+	}
+
+	\Return $y_m$
+\end{algorithm}
+
+\subsubsection{Backpropagation}
+Neural networks learn from examples using backpropagation. As the name implies, backpropagation works by tracing back from the output layer. Given a training example $X = (x_1,...,x_n)$ and the label $Y$, we first get the network's prediction $y$ using the forward pass. The general idea is to "propagate" the error signal between $y$ and $Y$ to the whole network, or in other words, update the network to decrease prediction error.
+
+The error signal is calculated using a loss function. Different problems can employ different loss functions. Typically, regression problems employ Mean Squared Error (MSE), while classification problems use the Cross Entropy function. Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
+
+In order to update the network, we need to know the values with which to update each neuron.
 
 \subsection{Convolutional Neural Networks}
 

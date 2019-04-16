@@ -11,8 +11,6 @@
 \usepackage{multicol}
 \usepackage{graphicx}
 \usepackage{subfiles}
-\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
-\usepackage{algorithmic}
 \usepackage[top=2cm, bottom=3cm, left=2cm, right=2cm]{geometry}
 \usepackage[numbers]{natbib}
 \usepackage{fancyhdr}
@@ -31,6 +29,25 @@
 \usepackage[justification=centering]{caption}
 \usepackage{subfig}
 \usepackage[english]{babel}
+
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage{algorithmic}
+\SetAlFnt{\footnotesize}
+\SetKw{KwDownTo}{downto}
+\SetKw{KwTrue}{true}
+\SetKw{KwFalse}{false}
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\SetKw{KwAnd}{and}
+\makeatletter
+\newcommand{\nosemic}{\renewcommand{\@endalgocfline}{\relax}}
+\newcommand{\dosemic}{\renewcommand{\@endalgocfline}{\algocf@endline}}
+\newcommand{\pushline}{\Indp}
+\newcommand{\popline}{\Indm\dosemic}
+\let\oldnl\nl
+\newcommand{\nonl}{\renewcommand{\nl}{\let\nl\oldnl}}
+\makeatother
+
 
 \hypersetup{
     colorlinks,
@@ -56,7 +73,7 @@
 \newcommand{\bigCI}{\mathrel{\text{\scalebox{1.07}{$\perp\mkern-10mu\perp$}}}}
 \renewcommand{\baselinestretch}{1.2}
 
-\setcounter{page}{3}
+% \setcounter{page}{3}
 \pagestyle{fancy}
 \hypersetup{colorlinks=true,urlcolor=black,linkcolor=black}
 \graphicspath{ {images/} }
