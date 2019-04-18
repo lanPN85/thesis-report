@@ -132,30 +132,120 @@ The forward pass is used to get output results from a neural network. Starting w
 \end{equation}
 where $f_i$ is the layer's activation function, and $W_i$ is the layer's weight matrix. The size of $W_i$ corresponds to the number of neurons at layers $i$ and $i - 1$.
 
+In order for neural networks to represent complex, non-linear models, the activation function at each layer is often non-linear. The most widely used functions are $sigmoid$ and $tanh$ (Figure \ref{fig:sigmoid_tanh}).
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{sigmoid_tanh.png}
+	\caption{Sigmoid and tanh activation functions}
+	\label{fig:sigmoid_tanh}
+\end{figure}
+
 \begin{algorithm}[bth]
 	\SetAlgoLined
 	\caption{Forward pass} \label{alg:fwd_pass}
-	\Input{$X = (x_1,...,x_n)$: a set of input features\\
+	\Input{$X = (x_1,...,x_k)$: a set of input features\\
 		$L = ((W_1, f_1),...,(W_m, f_m))$: the network's layers
 		}
 	\Output {
 		$y_m$: the network's prediction
+		$Z = (z_1,...,z_m)$: the output at each layer
 	}
 
 	$y_0 \gets X$ \\
-	\For{$(W_i, f_i) \in L$} {
-		$y_i \gets f_i(y_{i-1} \cdot W_i)$
+	\For{$i \in (1...m)$} {
+		$z_i \gets y_{i-1} \cdot W_i$ \\
+		$y_i \gets f_i(z_i)$
 	}
 
-	\Return $y_m$
+	\Return $y_m$, $Z$
 \end{algorithm}
 
 \subsubsection{Backpropagation}
 Neural networks learn from examples using backpropagation. As the name implies, backpropagation works by tracing back from the output layer. Given a training example $X = (x_1,...,x_n)$ and the label $Y$, we first get the network's prediction $y$ using the forward pass. The general idea is to "propagate" the error signal between $y$ and $Y$ to the whole network, or in other words, update the network to decrease prediction error.
 
-The error signal is calculated using a loss function. Different problems may utilize different loss functions. Typically, regression problems employ Mean Squared Error (MSE), while classification problems use the Cross Entropy function. Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
+The error signal is calculated using a loss function. Different problems may utilize different loss functions. Typically, regression problems employ Mean Squared Error (Equation \ref{eq:mse}), while classification problems use the Cross Entropy loss (Equation \ref{eq:cross_enp}). Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
 
-In order to update the network, we need to know the values with which to update each neuron.
+\begin{align}
+	& MSE = \frac{1}{n} \sum_{i=1}^n (y_i - Y-i)^2 \label{eq:mse}
+\end{align}
+where $n$ is the total number of examples.
+
+\begin{align}
+	& H = - \frac{1}{n} \sum_{i=1}^n (Y_ilog(y_i) + (1-Y_i)log(1-y_i)) \label{eq:cross_enp}
+\end{align}
+where $n$ is the total number of examples.
+
+In order to update the network, we need to know the values with which to update each neuron. Backpropagation finds these values for each layer $i$ using the gradient w.r.t layer $i + 1$. We start by calculating the gradient at the output layer $m$ w.r.t the loss function. Then, using the derivative chain rule, calculate the gradient at each previous layer. This is described in detail in Algorithm \ref{alg:backprop}.
+
+\begin{algorithm}[bth]
+	\SetAlgoLined
+	\caption{Backpropagation} \label{alg:backprop}
+	\Input{$X = (x_1,...,x_k)$: a set of input features\\
+		$Y$: the correct example label\\
+		$L = ((W_1, f_1),...,(W_m, f_m))$: the network's layers
+		}
+	\Output {
+		$\Delta = (\delta_1,...,\delta_m)$: the gradient at each layer
+	}
+
+	$y, Z \gets forwardPass(X)$ \\
+	$C \gets loss(y, Y)$ \\
+	$\delta_m = \frac{\delta C}{\delta w_m} \odot f_m'(z_m)$ \\
+	\For{$i \in (m-1...1)$} {
+		$\delta_i \gets (w_{i+1}^T \cdot \delta_{i+1}) \odot f_i'(z_i)$
+	}
+
+	\Return $\Delta$
+\end{algorithm}
+\FloatBarrier
+
+\subsubsection{Gradient descent}
+With the gradient at each layer, we can update the network by "moving" in the opposite direction of the gradient vectors. Given a small enough step, we can guarantee that the loss function decreases. By repeating this procedure on the training dataset, the network can converge at a minimum on the loss function. This procedure is called gradient descent (Algorithm \ref{alg:grad_desc}).
+
+\begin{algorithm}[bth]
+	\SetAlgoLined
+	\caption{Gradient Descent} \label{alg:grad_desc}
+	\Input{$X = (x_1,...,x_k)$: a set of input features\\
+		$Y$: the correct example label\\
+		$L = ((W_1, f_1),...,(W_m, f_m))$: the network's layers\\
+		$\gamma$: the learning rate
+		}
+	\Output {
+		The updated network
+	}
+	
+	\Repeat{convergence} {
+		$\Delta \gets backprop(X, Y)$ \\
+		$W \gets W - \gamma \Delta$
+	}
+\end{algorithm}
+\FloatBarrier
+
+A learning rate is specified to adjust the step for each gradient descent iteration. A high learning rate means the network is updated with large strides, which makes it susceptible to divergence at later steps. A low learning rate is more guaranteed to converge, but takes more iterations. Conventionally, the learning rate is set in the range of $10^{-2}$ to $10^{-4}$.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{gradient_descent.png}
+	\caption{Gradient descent schema}
+	\label{fig:gradient_descent}
+\end{figure}
+\FloatBarrier
+
+Gradient descent accounts for the gradient over the entire dataset. For very large datasets, this is not feasible. Minibatch gradient descent is a modified version that only updates the model on several examples at a time (one batch). This version runs in multiple "epochs", each of which goes through all batches in the dataset. Stochastic gradient descent (SGD) is a version with a batch size of 1. Stochastic and minibatch gradient descent usually requires lower learning rates and more iterations, but still consistently converges with lower memory footprints.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{gradient_descent_2.png}
+	\caption{Convergence comparison of different gradient descent versions}
+	\label{fig:gradient_descent_2}
+\end{figure}
+
+Additionally, a lot of research has been conducted on adapting the learning rate during the training process, most notably resulting in several optimizers such as Adam \cite{kingma2014adam}, Adadelta \cite{zeiler2012adadelta} and RMSprop \cite{tieleman2014rmsprop}.
+
+In general, networks with more layers and neurons can better fit the training data. However, simply increasing the number of neurons does not always result in more accurate models. Large neural networks overfits very quickly, while networks deeper than 5-6 layers suffer from vanishing gradients. Because of these limitations, the traditional neural net architecture are only viable at a certain size.
+
+Deep Learning techniques attempt to create larger and deeper networks while overcoming these challenges. These techniques include network architectures, optimizers, activation functions, etc,... In the next section, we look into Convolutional Neural Networks, one of the most impactful models in Deep Learning.
 
 \subsection{Convolutional Neural Networks}
 
@@ -224,7 +314,7 @@ Another approach, as implemented by the authors of the DistBelief framework \cit
 
 \begin{figure}[htp]
 	\centering
-	\includegraphics[width=0.7\textwidth]{model_parallel.png}
+	\includegraphics[width=0.6\textwidth]{model_parallel.png}
 	\caption{Model parallelism in DistBelief \cite{dean2012large}}
 	\label{fig:model_parallel}
 \end{figure}
@@ -237,7 +327,7 @@ A breakthrough for training DNNs was the use of Graphic Processing Units (GPUs),
 All of the frameworks mentioned in \ref{section:dlframeworks} allows execution on GPUs, the majority of which rely on NVIDIA's CUDA and CUDNN libraries.
 
 \subsection{Using Computing Clusters}
-While GPUs have greatly improved DNN training speed, modern networks continue to be even more complex, along with larger training datasets. This requires more scalable training mechanisms, particularly on multiple devices. One approach, as seen with Google's Tensor Processing Units (TPUs) \cite{jouppi2017datacenter}, is building custom hardware that are designed to work as clusters. Indeed, TPUs are very efficient and performant. However, this approach is expensive and requires a lot of effort for deployment. A more compact, user-friendly approach is to make use of existing GPUs and computer architectures. This can be done using a software layer that handles communication between GPUs/CPUs on different machines.
+While GPUs have greatly improved DNN training speed, modern networks continue to be even more complex, along with larger training datasets. This calls for more scalable training mechanisms, particularly on multiple devices. One approach, as seen with Google's Tensor Processing Units (TPUs) \cite{jouppi2017datacenter}, is building custom hardware that are designed to work as clusters. Indeed, TPUs are very efficient and performant. However, this approach is expensive and requires a lot of effort for deployment. A more compact, user-friendly approach is to make use of existing GPUs and computer architectures. This can be done using a software layer that handles communication between GPUs/CPUs on different machines.
 
 Support for multi-node and multi-GPU training are available in most DL frameworks, most notably TensorFlow (which utilizes Google's gRPC protocol) and PyTorch (which support several communication backends, including the popular MPI \cite{Forum:1994:MMI:898758} interface). Both implement parallelization using the data parallel approach (with Allreduce), as this is the most general solution that can apply to most neural networks.
 
