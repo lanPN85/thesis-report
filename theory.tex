@@ -29,9 +29,10 @@ Finally, reinforcement learning algorithms are modeled as agents within an envir
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.75\textwidth]{rl-model.png}
-	\caption{General model for reinforcement learning}
+	\caption{General model for reinforcement learning\protect\footnotemark}
 	\label{fig:rl-model}
 \end{figure}
+\footnotetext{https://www.kdnuggets.com/2018/03/5-things-reinforcement-learning.html}
 
 % \subsubsection{Feature extraction}
 % A key phase in training any machine learning model is representing the training examples in a format suitable for the model. This process is called feature extraction.
@@ -75,9 +76,10 @@ Precision measures the ratio between true positives (number of accurate predicti
 	\centering
 	\includegraphics[width=0.5\textwidth]{confusion-mat.png}
 	\caption{
-		A confusion matrix\\(TP: true positive, FP: false positive, FN: false negative, TN: true negative)}
+		A confusion matrix\\(TP: true positive, FP: false positive, FN: false negative, TN: true negative)\protect\footnotemark}
 	\label{fig:confusion-mat}
 \end{figure}
+\footnotetext{https://towardsdatascience.com/understanding-confusion-matrix-a9ad42dcfd62}
 \FloatBarrier
 
 More specifically, these metrics are calculated as follows:
@@ -106,9 +108,10 @@ The first neural network was proposed in 1958 by Frank Rosenblatt \cite{rosenbla
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.5\textwidth]{perceptron.png}
-	\caption{Diagram for a single layer binary classification perceptron}
+	\caption{Diagram for a single layer binary classification perceptron\protect\footnotemark}
 	\label{fig:perceptron}
 \end{figure}
+\footnotetext{http://ataspinar.com/2016/12/22/the-perceptron/}
 \FloatBarrier
 
 The idea of the perceptron eventually expanded into multi layer perceptrons, or better known as artificial neural networks. Architecturally, they differ in that there are multiple "neurons" (or computational units) as opposed to one, and they are divided into layers (Figure \ref{fig:nnet}).
@@ -118,9 +121,12 @@ Three types of layer are present in a neural net: the input layer, hidden layers
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.5\textwidth]{nnet.png}
-	\caption{Architecture of a 4-layer neural network}
+	\caption{Architecture of a 4-layer neural network\protect\footnotemark}
 	\label{fig:nnet}
 \end{figure}
+\footnotetext{https://technology.condenast.com/story/a-neural-network-primer}
+
+In this classic architecture, each neuron in layer $i$ is connected to every neuron in layer $i + 1$. As such, these networks are also referred to as fully connected networks. 
 
 Neural networks implement 2 primary procedures: forward pass and backpropagation.
 
@@ -137,9 +143,10 @@ In order for neural networks to represent complex, non-linear models, the activa
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.7\textwidth]{sigmoid_tanh.png}
-	\caption{Sigmoid and tanh activation functions}
+	\caption{Sigmoid and tanh activation functions\protect\footnotemark}
 	\label{fig:sigmoid_tanh}
 \end{figure}
+\footnotetext{https://www.researchgate.net/figure/The-sigmoid-and-hyperbolic-tangent-activation-functions\_fig2\_2654867842}
 
 \begin{algorithm}[bth]
 	\SetAlgoLined
@@ -227,19 +234,21 @@ A learning rate is specified to adjust the step for each gradient descent iterat
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.7\textwidth]{gradient_descent.png}
-	\caption{Gradient descent schema}
+	\caption{Gradient descent schema\protect\footnotemark}
 	\label{fig:gradient_descent}
 \end{figure}
 \FloatBarrier
+\footnotetext{https://hackernoon.com/gradient-descent-aynk-7cbe95a778da}
 
 Gradient descent accounts for the gradient over the entire dataset. For very large datasets, this is not feasible. Minibatch gradient descent is a modified version that only updates the model on several examples at a time (one batch). This version runs in multiple "epochs", each of which goes through all batches in the dataset. Stochastic gradient descent (SGD) is a version with a batch size of 1. Stochastic and minibatch gradient descent usually requires lower learning rates and more iterations, but still consistently converges with lower memory footprints.
 
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.7\textwidth]{gradient_descent_2.png}
-	\caption{Convergence comparison of different gradient descent versions}
+	\caption{Convergence comparison of different gradient descent versions\protect\footnotemark}
 	\label{fig:gradient_descent_2}
 \end{figure}
+\footnotetext{https://towardsdatascience.com/gradient-descent-algorithm-and-its-variants-10f652806a3}
 
 Additionally, a lot of research has been conducted on adapting the learning rate during the training process, most notably resulting in several optimizers such as Adam \cite{kingma2014adam}, Adadelta \cite{zeiler2012adadelta} and RMSprop \cite{tieleman2014rmsprop}.
 
@@ -248,6 +257,23 @@ In general, networks with more layers and neurons can better fit the training da
 Deep Learning techniques attempt to create larger and deeper networks while overcoming these challenges. These techniques include network architectures, optimizers, activation functions, etc,... In the next section, we look into Convolutional Neural Networks, one of the most impactful models in Deep Learning.
 
 \subsection{Convolutional Neural Networks}
+Convolutional Neural Networks (ConvNets, or CNNs) was first designed to work with images. Their architecture addresses a key problem when using ANNs to process images, as the input size can be very large (eg. 200 x 200 x 3), which quickly leads to huge, expensive networks that overfit the data.
+
+A typical CNN is constructed from several components:
+
+The INPUT layer is the same as a fully connected network, which holds the input features.
+
+The CONV (convolution) layer is the core building block of a Convolutional Network that does most of the computational heavy lifting (Figure \ref{fig:conv}). Its parameters consist of a set of learnable filters. Every filter is small spatially (along width and height), but extends through the full depth of the input volume. For example, a typical filter on a first layer of a ConvNet might have size 5x5x3 (i.e. 5 pixels width and height, and 3 because images have depth 3, the color channels). During the forward pass, we slide (more precisely, convolve) each filter across the width and height of the input volume and compute dot products between the entries of the filter and the input at any position. As we slide the filter over the width and height of the input volume we will produce a 2-dimensional activation map that gives the responses of that filter at every spatial position. Intuitively, the network will learn filters that activate when they see some type of visual feature such as an edge of some orientation or a blotch of some color on the first layer, or eventually entire honeycomb or wheel-like patterns on higher layers of the network. Now, we will have an entire set of filters in each CONV layer (e.g. 12 filters), and each of them will produce a separate 2-dimensional activation map. We will stack these activation maps along the depth dimension and produce the output volume.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.5\textwidth]{conv.jpeg}
+	\caption{An example convolution layer\protect\footnotemark}
+	\label{fig:conv}
+\end{figure}
+\footnotetext{http://cs231n.github.io/understanding-cnn/}
+
+A key difference between CONV layers and regular hidden layers is their local connectivity. Each neuron is connected to only a local region of the input volume. The spatial extent of this connectivity is a hyperparameter called the receptive field of the neuron (equivalently this is the filter size). The extent of the connectivity along the depth axis is always equal to the depth of the input volume. It is important to emphasize again this asymmetry in how we treat the spatial dimensions (width and height) and the depth dimension: The connections are local in space (along width and height), but always full along the entire depth of the input volume.
 
 \subsection{Object Detection With Convolutional Neural Networks}
 
@@ -260,18 +286,20 @@ Computational graphs are directed graphs that express a series of computations. 
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.5\textwidth]{cgraph1.png}
-	\caption{An example computational graph with inputs $a$, $b$ and outputs $(a + b)(b + 1)$}
+	\caption{An example computational graph with inputs $a$, $b$ and outputs $(a + b)(b + 1)$\protect\footnotemark}
 	\label{fig:cgraph1}
 \end{figure}
+\footnotetext{http://colah.github.io/posts/2015-08-Backprop/}
 
 It is trivial to traverse the graph from all input nodes to calculate its outputs. If we model a neural network as a series of computations (eg. $y = sigmoid(x \cdot w)$), then this corresponds to the network's forward pass. Conversely, since each node knows about its outcoming edges and operator, it can infer the gradient w.r.t each edge. In other words, we can calculate gradients at each node automatically, by traversing the graph backwards. This is immensely helpful for backpropagation, which requires the gradient for each neuron to be calculated.
 
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.5\textwidth]{cgraph2.png}
-	\caption{Calculating gradients on each edge}
+	\caption{Calculating gradients on each edge\protect\footnotemark}
 	\label{fig:cgraph2}
 \end{figure}
+\footnotetext{http://colah.github.io/posts/2015-08-Backprop/}
 
 The fact that neural networks can be modeled as computational graphs has several implications. Most significantly, it means that backpropagation can be done automatically, assuming each op is differentiable. This greatly reduces the amount of work required when designing network architectures, as only the forward pass need to be defined. Moreover, graph optimization methods can be applied to their architectures, allowing them to be more compact and efficient.
 
@@ -294,7 +322,7 @@ From a parallel computing perspective, optimizing neural networks has a lot of p
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.7\textwidth]{allreduce.png}
-	\caption{Centralized Allreduce with Parameter Server}
+	\caption{Centralized Allreduce with Parameter Server \cite{dean2012large}}
 	\label{fig:allreduce}
 \end{figure}
 
@@ -305,9 +333,10 @@ Something to take note of is the effect of this paradigm on the training results
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.7\textwidth]{ring_allreduce.png}
-	\caption{Ring Allreduce}
+	\caption{Ring Allreduce\protect\footnotemark}
 	\label{fig:ring_allreduce}
 \end{figure}
+\footnotetext{https://preferredresearch.jp/2018/07/10/technologies-behind-distributed-deep-learning-allreduce/}
 \FloatBarrier
 
 Another approach, as implemented by the authors of the DistBelief framework \cite{dean2012large}, is to distribute the network graph vertically on multiple nodes (Figure \ref{fig:model_parallel}). This "striping" appproach avoids constant synchronization between nodes, but also only applicable to large, wide networks whose layers can be efficiently split.
