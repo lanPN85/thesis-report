@@ -312,9 +312,13 @@ CNNs are constructed using "blocks" of (CONV, ReLU, POOL) layers of different si
 Later architectures introduce more complex, non-linear ordering of convolution blocks to facilitate learning. ResNet \cite{he2016resnet}, for example, introduces skip connections (forming what's called "residual blocks") between convolution blocks.
 
 \subsection{Object Detection With Convolutional Neural Networks}
-ConvNets have been successfully applied to many computer vision problems, the most common being classification in which application is quite straightforward (using fully connected layers as the output layer). For object detection, modeling the problem's inputs and outputs with CNNs is somewhat more complex. Two types of model have been proposed and extensively researched to varying results: two-phase detection and single-phase detection.
+ConvNets have been successfully applied to many computer vision problems, the most common being classification in which application is quite straightforward (using fully connected layers as the output layer). For object detection, modeling the problem's inputs and outputs with CNNs is somewhat more complex. Two types of model have been proposed and extensively researched to varying results: two-stage detection and single-stage detection.
 
-Two-phase detection splits the problem into two subtasks: finding regions of interest (RoI) where there may be objects, then locating and classifying the single object within each region. The tasks are split out to handle the varying number of objects within each image.
+Two-stage detection splits the problem into two subtasks: finding regions of interest (RoI) where there may be objects, then locating and classifying the single object within each region. The tasks are split out to handle the varying number of objects within each image. Faster R-CNN \cite{ren2015faster} is a good example of a two-stage detector. THe input image is put through convolution layers to produce the initial feature map. Then, a small ConvNet is used to generate the ROIs, called the Region Proposal Network. Because ROIs can have arbitrary sizes, they are reshaped using an ROI Pooling layer. ROI pooling works similarly to max pooling, but instead of the whole feature map, it takes the feature map segment corresponding to each ROI, divides it into $m \times n$ section and performs max pooling on those sections to produce the $m \times n$ output. In essence, ROI pooling squashes ROIs of different sizes into uniform representations of their strongest signals. Afterwards, each ROI map is put through a classifier feedforward network to generate the class label. The loss function for the network is the sum of the classification loss for each correctly predicted region, and the regression loss for each predicted box.
+
+In contrast, one-stage detectors model the problem as classifying each subregion on the image as either one of the pre-defined class (foreground) or no class at all (background). YOLO \cite{redmon2016you} and SSD \cite{liu2016ssd} are both good examples of one-stage detectors. Both architectures define multiple overlapping boxes on the feature map region. The network then learns how to correctly classify each of these boxes into the correct class, as well as the offset to the default position. Overlapping boxes of the same class are combined into a single bounding box using a procedure called Non-Maximal Suppression.
+
+For both types of detector, the model needs to pinpoint the coordinates for each bounding box. Although networks like Faster R-CNN can accomplish this by simply using the offset from a $(0, 0)$ root, this creates bias for larger boxes. Instead, fixed anchor boxes are used as base for the offsets. To best reduce bias, the anchors' shapes and ratios should cover the range of desired image shapes.
 
 \section{Computational Graphs \& Deep Learning Frameworks}
 \subsection{Computational Graphs}
@@ -375,6 +379,7 @@ Something to take note of is the effect of this paradigm on the training results
 	\caption{Ring Allreduce\protect\footnotemark}
 	\label{fig:ring_allreduce}
 \end{figure}
+
 \footnotetext{https://preferredresearch.jp/2018/07/10/technologies-behind-distributed-deep-learning-allreduce/}
 \FloatBarrier
 
