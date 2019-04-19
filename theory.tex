@@ -275,7 +275,46 @@ The CONV (convolution) layer is the core building block of a Convolutional Netwo
 
 A key difference between CONV layers and regular hidden layers is their local connectivity. Each neuron is connected to only a local region of the input volume. The spatial extent of this connectivity is a hyperparameter called the receptive field of the neuron (equivalently this is the filter size). The extent of the connectivity along the depth axis is always equal to the depth of the input volume. It is important to emphasize again this asymmetry in how we treat the spatial dimensions (width and height) and the depth dimension: The connections are local in space (along width and height), but always full along the entire depth of the input volume.
 
+The assumption made by convolution is that if a feature is a good representation for one region of the image, then it's probably good for other regions as well. As the filters convolve, the weights used for each is the same, and their gradients accumulate during backpropagation. This allows CONV layers to share weights between input regions, drastically reducing their size while still covering the entire input.
+
+In lieu of activation functions like $sigmoid$ or $tanh$, CONV layers are usually activated using the ReLU function, with $ReLU(x) = max(x, 0)$. ReLU has several properties that helps with very deep networks:
+
+\begin{itemize}
+	\item ReLU is a non-linear function
+	\item The gradient for ReLU is either 1 or 0, meaning it's not affected by vanishing gradient
+\end{itemize}
+
+One downside for ReLU is the appearence of "dead neurons" whose output is negative. These neurons would have zero gradient and can no longer learn or contribute to the network. Alternative functions such as Leaky ReLU or Exponential ReLU have been proposed to overcome this.
+
+Next, POOL (pooling) layers are used to progressively reduce the spatial size of the representation to reduce the amount of parameters and computation in the network, and hence to also control overfitting. The POOL layer operates independently on every depth slice of the input and resizes it spatially, using the MAX operation. The most common form is a pooling layer with filters of size 2x2 applied with a stride of 2 downsamples every depth slice in the input by 2 along both width and height, discarding 75\% of the activations. Every MAX operation would in this case be taking a max over 4 numbers (little 2x2 region in some depth slice). The depth dimension remains unchanged (Figure \ref{fig:maxpool}).
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{maxpool.jpeg}
+	\caption{An example of max pooling\protect\footnotemark}
+	\label{fig:maxpool}
+\end{figure}
+\footnotetext{http://cs231n.github.io/understanding-cnn/}
+
+In addition to max pooling, the pooling units can also perform other functions, such as average pooling or even L2-norm pooling. Average pooling was often used historically but has recently fallen out of favor compared to the max pooling operation, which has been shown to work better in practice.
+
+CNNs are constructed using "blocks" of (CONV, ReLU, POOL) layers of different sizes, and finally followed by several fully connected layers to produce output results if needed (eg. classification result). VGGNet \cite{Simonyan14c} (Figure \ref{fig:vgg}) is a very effective network that follows this architecture.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{vgg.png}
+	\caption{VGGNet architecture\protect\footnotemark}
+	\label{fig:vgg}
+\end{figure}
+\footnotetext{https://www.codesofinterest.com/p/build-deeper.html}
+\FloatBarrier
+
+Later architectures introduce more complex, non-linear ordering of convolution blocks to facilitate learning. ResNet \cite{he2016resnet}, for example, introduces skip connections (forming what's called "residual blocks") between convolution blocks.
+
 \subsection{Object Detection With Convolutional Neural Networks}
+ConvNets have been successfully applied to many computer vision problems, the most common being classification in which application is quite straightforward (using fully connected layers as the output layer). For object detection, modeling the problem's inputs and outputs with CNNs is somewhat more complex. Two types of model have been proposed and extensively researched to varying results: two-phase detection and single-phase detection.
+
+Two-phase detection splits the problem into two subtasks: finding regions of interest (RoI) where there may be objects, then locating and classifying the single object within each region. The tasks are split out to handle the varying number of objects within each image.
 
 \section{Computational Graphs \& Deep Learning Frameworks}
 \subsection{Computational Graphs}
