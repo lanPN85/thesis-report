@@ -5,7 +5,7 @@
 To benchmark BK.Synpase's performance, we trained the presented RetinaNet architecture using the framework. The RetinaNet implementation is written in PyTorch, based on an open source implementation and slightly modified to run on both CPU and GPU for testing purposes. The modified code is available at:\\
 \href{https://github.com/lanPN85/pytorch-retinanet-1}{https://github.com/lanPN85/pytorch-retinanet-1}
 
-Due to resource constraints, we were only able to test the system on a small 2-machine setup. Each machine runs on Ubuntu Linux 18.04, with Intel i7 3.7MHz CPUs, 32GB and 64GB RAM, and NVIDIA GeForce GTX1080 GPUs. The 2 nodes are connected via an Ethernet connection over a 100Mbps network switch. The shared data folder is on an HDD drive physically connected to one machine (hereby denoted as N1), and mounted on the other (N2) using Linux NFS mount. Each machine runs a BK.Synapse node daemon, while N2 also hosts the API server and the web application (Figure \ref{fig:deployment}).
+Due to resource constraints, we were only able to test the system on a small 2-machine setup. Each machine runs on Ubuntu Linux 18.04, with Intel i7 3.7MHz CPUs, 32GB and 64GB RAM, and NVIDIA GeForce GTX1080 8GB GPUs. The 2 nodes are connected via an Ethernet connection over a 100Mbps network switch. The shared data folder is on an HDD drive physically connected to one machine (hereby denoted as N1), and mounted on the other (N2) using Linux NFS mount. Each machine runs a BK.Synapse node daemon, while N2 also hosts the API server and the web application (Figure \ref{fig:deployment}).
 
 \begin{figure}[htp]
 	\centering
@@ -44,7 +44,9 @@ Our first set of experiments seek to benchmark BK.Synapse's performance when tra
 \end{table}
 \FloatBarrier
 
-This benchmark is primarily concerned with parallelization metrics, including speedup and efficiency when training with multiple CPUs/GPUs, as shown in Table \ref{tab:benchmarks}. 
+The listed batch size is the per-node batch size. This value is quite smaller than normal, due to the size of the network and the input images. We find that a batch size of 2 avoids out-of-memory errors for our GPUs.
+
+This benchmark is primarily concerned with parallelization metrics, including speedup and efficiency when training with multiple CPUs/GPUs, as shown in Table \ref{tab:benchmarks}. We measure the average time in seconds for each epoch and step for comparison. Speedup and efficiency are measured using per step time.
 
 \begin{table}[]
     \centering
@@ -60,4 +62,5 @@ This benchmark is primarily concerned with parallelization metrics, including sp
     \label{tab:benchmarks}
 \end{table}
 
-\section{Model Perfomance}
+\section{Model Performance}
+In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the ICDAR Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, but set the number of epochs to 80. The network is trained on both N1 and N2 with GPU acceleration.
