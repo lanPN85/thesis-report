@@ -30,7 +30,7 @@ Due to resource constraints, we were only able to test the system on a small 2-m
 \end{figure}
 % \FloatBarrier
 
-The training and test datasets are from ICDAR 2019 RobustReading Challenge on Scanned Receipts OCR and Information Extraction, Task 1\footnote{http://rrc.cvc.uab.es/?ch=13}. The original dataset consists of 626 images of scanned receipts, with annotations for invidual text block positions and their content. We split this data into 532 images for the train set and 94 images for the validation set. While the original challenge is to both locate each block and predict their content, we focus solely on the task of locating blocks using RetinaNet.
+The training and test datasets are from ICDAR 2019 RobustReading Challenge on Scanned Receipts OCR and Information Extraction, Task 1\footnote{http://rrc.cvc.uab.es/?ch=13}. The original dataset consists of 626 images of scanned receipts, with annotations for invidual text block positions and their content. We split this data into 532 images for the train set and 94 images for the validation set. While the original challenge is to both locate each block and predict their content, we focus solely on the task of locating blocks using RetinaNet. We split text blocks into 3 classes: numbers, date time, and regular text.
 
 \begin{figure}[htp]
 	\centering
@@ -59,7 +59,7 @@ Our first set of experiments seek to benchmark BK.Synapse's performance when tra
 \end{table}
 \FloatBarrier
 
-The listed batch size is the per-node batch size. This value is quite smaller than normal, due to the size of the network and the input images. We find that a batch size of 2 avoids out-of-memory errors for our GPUs.
+The listed batch size (2) is the per-node batch size. This value is quite smaller than normal, due to the size of the network and the input images. We find that a batch size of 2 avoids out-of-memory errors for our GPUs.
 
 This benchmark is primarily concerned with parallelization metrics, including speedup and efficiency when training with multiple CPUs/GPUs, as shown in Table \ref{tab:benchmarks}. We measure the average time in seconds for each epoch and step for comparison. Speedup and efficiency are measured using per epoch time.
 
@@ -70,13 +70,14 @@ This benchmark is primarily concerned with parallelization metrics, including sp
         \textbf{Resources} & \textbf{Avg. epoch time} & \textbf{Avg. step time} & \textbf{Speedup} & \textbf{Efficiency} \\ \hline
         1 CPU & 2130.33s & 7.92s & - & - \\ \hline
         2 CPUs & - & - &  & \\ \hline
-        1 GPU & 832.79 & 3.04 & - & - \\ \hline
-        2 GPUs & 606.14 & 4.48 & 1.37x & 68.70\% \\ \hline
+        1 GPU & 832.79s & 3.04s & - & - \\ \hline
+        2 GPUs & 606.14s & 4.48s & 1.37x & 68.70\% \\ \hline
     \end{tabu}
     \caption{Benchmark time, speedup ratio and efficiency index for training RetinaNet in parallel}
     \label{tab:benchmarks}
 \end{table}
-\FloatBarrier
+
+As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the average step time compared to single-node setups. However, as epochs are now shorter, the overall epoch time is sped up. On 2 GPUs, BK.Synapse achieves a somewhat average efficiency index of 68.70\%. This leaves quite some room for improvements, especially in terms of framework-specific tasks like logging and monitoring.
 
 \section{Model Performance}
 In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the ICDAR Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, but set the number of epochs to 80. The network is trained on both N1 and N2 with GPU acceleration.
