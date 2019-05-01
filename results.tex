@@ -77,7 +77,7 @@ This benchmark is primarily concerned with parallelization metrics, including sp
     \label{tab:benchmarks}
 \end{table}
 
-As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the average step time compared to single-node setups. However, as epochs are now shorter, the overall epoch time is sped up. On 2 GPUs, BK.Synapse achieves a somewhat average efficiency index of 68.70\%. This leaves quite some room for improvements, especially in terms of framework-specific tasks like logging and monitoring.
+As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the average step time compared to single-node setups. However, since epochs are now shorter, the overall epoch time is sped up. On 2 GPUs, BK.Synapse achieves a somewhat average efficiency index of 68.70\%. This leaves quite some room for improvements, especially in terms of framework-specific tasks like logging and monitoring.
 
 \section{Model Performance}
 In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the ICDAR Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, but set the number of epochs to 80. The network is trained on both N1 and N2 with GPU acceleration.
