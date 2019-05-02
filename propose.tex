@@ -191,8 +191,8 @@ MPI requires a single port to be used for SSH connection across all machines. To
 
 For optimal performance, we have several deployment recommendations:
 \begin{itemize}
-    \item High-speed connections is preferred when setting up the node network(eg. InfiniBand). Note that this does not have to include the web server, since this is separate from the training runtime.
-    \item Node GPUs should have the same or similar capabilities. Otherwise, GPU speed or memory would be capped at the job's lowest-tier GPU.
+    \item High-speed connections are preferred when setting up the node network(eg. InfiniBand). Note that this does not have to include the web server, since this is separate from the training runtime.
+    \item Node GPUs should have the same or similar capabilities. Otherwise, GPU speed or memory would be capped at the job's lowest-tier GPU, leading to wasted resources.
 \end{itemize}
 
 \subsubsection{Security Concerns}
