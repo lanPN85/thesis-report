@@ -43,12 +43,11 @@ Due to these limitations, we aim to design BK.Synapse as a distributed training 
 
 Aside from DIGITS, we also take note of other similar tools in the domain, namely DeepCognition\footnote{\href{https://deepcognition.ai/}{https://deepcognition.ai/}}, Google Colaboratory\footnote{\href{https://colab.research.google.com/}{https://colab.research.google.com/}}, etc,...
 
-We shall describe BK.Synapse's design and technical implementation in the following section.
-
-\subsection{System Description}
 BK.Synapse is open source and hosted at \href{https://github.com/lanPN85/BK.Synapse}{https://github.com/lanPN85/BK.Synapse}.
 
-\subsubsection{Core Concepts}
+We shall describe BK.Synapse's design and technical implementation in the following sections.
+
+\subsection{Core Concepts}
 There are 4 core concepts that define the user's workflow in BK.Synapse (Figure \ref{fig:workflow}):
 \begin{enumerate}
     \item Datasets: A dataset is a collection of arbitrary files used for training (eg. images, text files,...). There is no pre-defined format, and users can simply compress their existing data and upload to the server.
@@ -65,7 +64,7 @@ There are 4 core concepts that define the user's workflow in BK.Synapse (Figure 
 \end{figure}
 \FloatBarrier
 
-\subsubsection{Architecture}
+\subsection{Architecture}
 At a high level, BK.Synapse consists of 4 primary components (Figure \ref{fig:architecture}): the API server, worker nodes, data store, and the web application.
 
 \begin{figure}[htp]
@@ -99,7 +98,7 @@ Finally, the web application is a client that uses the BK.Synapse API, providing
 \end{figure}
 \FloatBarrier
 
-\subsubsection{Management Model}
+\subsection{Management Model}
 BK.Synapse manages objects directly through the filesystem within the shared datastore. The directory structure is shown in Figure \ref{fig:bksynapse_tree}.
 
 \begin{figure}[htp]
@@ -123,7 +122,7 @@ Even though we store a lot of metadata as JSON documents, we chose not to use a 
     \item Finally, this decision is somewhat influenced by DIGITS, which uses a similar directory model to store jobs, albeit with a less portable file format (Pickle).
 \end{itemize}
 
-\subsubsection{Dynamic Code Loading}
+\subsection{Dynamic Code Loading}
 The core BK.Synapse runtime is capable of embedding user-defined classes and functions across multiple files/packages into the training procedure. This requires the user to define entrypoints that the runtime can detect. These include:
 \begin{itemize}
     \item A file named \lstinline{bks_model.py}, containing the class \lstinline{UserModel} to define a model. \lstinline{UserModel} must implement a \lstinline{loss()} method that defines the loss function used in training. Optionally, if a \lstinline{metrics()} method is defined, then it is used to calculate additional metrics (eg. accuracy). For PyTorch models, \lstinline{UserModel} must subclass \lstinline{Module}.
@@ -180,7 +179,7 @@ The mechanics for embedding user code is relatively simple, and is partially bas
 	\label{fig:codeload}
 \end{figure}
 
-\subsubsection{Job Monitoring}
+\subsection{Job Monitoring}
 The user's custom model is loaded inside a training script that handles more than model training. Instead, it periodically logs progress information into a status update file (\lstinline{status.json}). Clients can query the corresponding job's endpoint to receive this file's contents, and be notified of the training process. Additionally, status updates are also appended to a \lstinline{history.toml} file, which serves as the job's history logs and used for future analytics. As job histories tend to be very long, we opt to store it as a TOML\footnote{\href{https://github.com/toml-lang/toml}{https://github.com/toml-lang/toml}} array instead of a JSON document. On top of being human readable, TOML arrays can be easily parsed as a file stream without loading the whole document, which immensely improves query speed.
 
 \begin{lstlisting}[caption={An example history.toml file}, language=XML]
@@ -214,12 +213,12 @@ The BK.Synapse web client polls the API backend every few seconds and update the
 
 The training script also generates a TensorBoard log directory for further analysis, and handles saving checkpoints at regular intervals.
 
-\subsubsection{Node Monitoring}
+\subsection{Node Monitoring}
 Similar to jobs, nodes are monitored using node daemons. A node daemon is deployed at each node, and is in fact a simple Python script that runs an infinite loop. Within the loop, the daemon i) queries CPU and GPU information, ii) updates the node status and iii) waits several seconds to the next loop. Constant information like GPU names, CPU frequency, etc... are collected on startup. Only status information, eg. RAM usage, GPU memory usage,... are constantly queried. This information is also polled and displayed by the BK.Synapse web app.
 
 Each status update also contains a timestamp, used by the API server as a health check mechanism. If a node's timestamp is "stale" (ie. too far away from the current timestamp), that node is declared inactive.
 
-\subsubsection{Parallelization Techniques}
+\subsection{Parallelization Techniques}
 BK.Synapse's key feature is being able to scale easily across multiple machines. The infrastructure layer supports this by keeping track of node IPs using node daemons, making it easy to add new nodes or detect failures. The actual parallel execution is implemented with Horovod \cite{DBLP:journals/corr/abs-1802-05799} and MPI \cite{Forum:1994:MMI:898758}.
 
 Horovod provides a set of utilities to leverage MPI and associated acceleration methods (eg. NCCL) to perform multi-node training:
@@ -247,7 +246,7 @@ We make use of the rank 0 node as the logger, periodically writing the job's sta
 
 For nodes with multiple GPUs, the default behavior is to use all those that are available, each getting its own MPI process. We use local rank to pin each process to its respective GPU.
 
-\subsubsection{Deployment Model}
+\subsection{Deployment Model}
 All components are packaged as Docker containers for ease of deployment. The only system dependency is the shared data store, which is subsequently mounted to the \lstinline{/data} folder within each container.
 
 MPI requires a single port to be used for SSH connection across all machines. To avoid collision, we use the port 17992, and bind each container to the host machine's network stack.
@@ -258,7 +257,7 @@ For optimal performance, we have several deployment recommendations:
     \item Node GPUs should have the same or similar capabilities. Otherwise, GPU speed or memory would be capped at the job's lowest-tier GPU, leading to wasted resources.
 \end{itemize}
 
-\subsubsection{Security Concerns}
+\subsection{Security Concerns}
 In its current state, BK.Synapse should only be deployed in a trusted, private environment. This is due to a number of security concerns, including:
 \begin{itemize}
     \item No access control or authorization has been implemented. This is however an important feature that will eventually be added once the API is more stable.
@@ -306,4 +305,4 @@ where $\gamma$ is the focusing parameter. We can see that by adding the modulati
 
 Aside from Focal Loss, RetinaNet makes several minor adjustments to FPN, including using different anchor scales at each layer, and different IoU thresholds when assigning anchor labels. RetinaNet was shown to achieve better results on the COCO dataset \ref{lin2014microsoft} than Faster-RCNN, while also being faster.
 
-When applying to the text detection sub-problem, we take special note of the anchors. Unlike regular objects, which often has a ratio from 1:2 to 2:1, text blocks are usually wide. Therefore, the anchors used on COCO in \cite{Lin_2017} would not perform well on this problem. Instead, we add wider ratios of 1:8, 1:6 and 1:4, which better fit our data.
+When applied to the text detection sub-problem, we take special note of the anchors. Unlike regular objects, which often has a ratio from 1:2 to 2:1, text blocks are usually wide. Therefore, the anchors used on COCO in \cite{Lin_2017} would not perform well on this problem. Instead, we add wider ratios of 1:8, 1:6 and 1:4, which better fit our data.
