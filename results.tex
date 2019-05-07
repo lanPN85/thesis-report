@@ -30,7 +30,7 @@ Due to resource constraints, we were only able to test the system on a small 2-m
 \end{figure}
 % \FloatBarrier
 
-The training and test datasets are from ICDAR 2019 RobustReading Challenge on Scanned Receipts OCR and Information Extraction, Task 1\footnote{http://rrc.cvc.uab.es/?ch=13}. The original dataset consists of 626 images of scanned receipts, with annotations for invidual text block positions and their content. We split this data into 532 images for the train set and 94 images for the validation set. While the original challenge is to both locate each block and predict their content, we focus solely on the task of locating blocks using RetinaNet. We split text blocks into 3 classes: numbers, date time, and regular text.
+The training and test datasets are from ICDAR 2019 RobustReading Challenge on Scanned Receipts OCR and Information Extraction, Task 1\footnote{http://rrc.cvc.uab.es/?ch=13}. The original dataset consists of 626 images of scanned receipts, with annotations for invidual text block positions and their content. We split this data into 532 images for the train set and 94 images for the validation set. While the original challenge is to both locate each block and predict their content, we focus solely on the task of locating blocks using RetinaNet.
 
 \begin{figure}[htp]
 	\centering
@@ -69,7 +69,7 @@ This benchmark is primarily concerned with parallelization metrics, including sp
         \hline
         \textbf{Resources} & \textbf{Avg. epoch time} & \textbf{Avg. step time} & \textbf{Speedup} & \textbf{Efficiency} \\ \hline
         1 CPU & 2130.33s & 7.92s & - & - \\ \hline
-        2 CPUs & - & - &  & \\ \hline
+        2 CPUs & 1421.10s & 10.41s & 1.50x & 75.00\% \\ \hline
         1 GPU & 832.79s & 3.04s & - & - \\ \hline
         2 GPUs & 606.14s & 4.48s & 1.37x & 68.70\% \\ \hline
     \end{tabu}
@@ -77,7 +77,37 @@ This benchmark is primarily concerned with parallelization metrics, including sp
     \label{tab:benchmarks}
 \end{table}
 
-As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the average step time compared to single-node setups. However, since epochs are now shorter, the overall epoch time is sped up. On 2 GPUs, BK.Synapse achieves a somewhat average efficiency index of 68.70\%. This leaves quite some room for improvements, especially in terms of framework-specific tasks like logging and monitoring.
+As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the average step time compared to single-node setups. For CPU runs, step time increases from 7.92s to 10.41s, whereas GPU runs increase from 3.04s to 4.48s. However, since epochs are now shorter, the overall epoch time is sped up. ON average, a CPU epoch decreases by approximately 700s (11 minutes), and a GPU epoch decreases by 200s (3 minutes). a On 2 GPUs, BK.Synapse achieves a somewhat average efficiency index of 68.70\%. On 2 CPUs, efficiency is slightly higher at 75.00\%. This leaves quite some room for improvements, especially in terms of framework-specific tasks like logging and monitoring. However, the training speedup is still significant, and can be very useful in practice. Figure \ref{fig:epochs_chart} shows the average epoch time between these configurations and the "ideal" runtime (ie. efficiency equals 100\%).
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.75\textwidth]{epochs_chart.png}
+	\caption{Average epoch time for different parallel configurations}
+	\label{fig:epochs_chart}
+\end{figure}
 
 \section{Model Performance}
-In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the ICDAR Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, but set the number of epochs to 80. The network is trained on both N1 and N2 with GPU acceleration.
+In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the ICDAR Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, but set the number of epochs to 50. The network is trained on both N1 and N2 with GPU acceleration.
+
+The model's loss values (regression and classification loss) at each epoch for the training and validation sets are shown in Figures .
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{train_loss.png}
+	\caption{Regression loss and classification loss over epochs on the training set}
+	\label{fig:train_loss}
+\end{figure}
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{val_loss.png}
+	\caption{Regression loss and classification loss over epochs on the validation set}
+	\label{fig:val_loss}
+\end{figure}
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{cmp_loss.png}
+	\caption{Loss value comparison between the training and validation set}
+	\label{fig:cmp_loss}
+\end{figure}

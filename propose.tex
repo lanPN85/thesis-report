@@ -54,7 +54,7 @@ There are 4 core concepts that define the user's workflow in BK.Synapse (Figure 
     \item Datasets: A dataset is a collection of arbitrary files used for training (eg. images, text files,...). There is no pre-defined format, and users can simply compress their existing data and upload to the server.
     \item Models: A model contains the code for the user's custom network. In order to facilitate dynamic loading during runtime, this code needs to adhere to a simple interface that will be described in later sections.
     \item Data loaders: A data loader is the glue component that connects a dataset and a model. Conceptually, data loaders are the same as PyTorch's Dataset or Keras' Sequence. They define how data from datasets should be loaded and transformed in order to be fed into models.
-    \item Jobs: A job tie the above components together to create a complete training pipeline. It also specifies many hyperparameters for training (eg. learning rate, batch size,...) and the nodes to be used for the training process.
+    \item Jobs: A job puts the above components together to create a complete training pipeline. It also specifies many hyperparameters for training (eg. learning rate, batch size,...) and the nodes to be used for the training process.
 \end{enumerate}
 
 \begin{figure}[htp]
@@ -70,7 +70,7 @@ At a high level, BK.Synapse consists of 4 primary components (Figure \ref{fig:ar
 
 \begin{figure}[htp]
 	\centering
-	\includegraphics[width=0.65\textwidth]{architecture.png}
+	\includegraphics[width=0.5\textwidth]{architecture.png}
 	\caption{BK.Synapse's high-level architecture}
 	\label{fig:architecture}
 \end{figure}
@@ -97,9 +97,33 @@ Finally, the web application is a client that uses the BK.Synapse API, providing
 	\caption{The BK.Synapse web application}
 	\label{fig:bks_example_1}
 \end{figure}
+\FloatBarrier
+
+\subsubsection{Management Model}
+BK.Synapse manages objects directly through the filesystem within the shared datastore. The directory structure is shown in Figure \ref{fig:bksynapse_tree}.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth]{bksynapse_tree.png}
+	\caption{The BK.Synapse directory structure}
+	\label{fig:bksynapse_tree}
+\end{figure}
+
+Each object is assigned its own folder. Aside from nodes, whose metadata is provided by the node daemon in \lstinline{info.json}, every object stores metadata in a \lstinline{.bks.meta} file. This is a small JSON file that helps initialize these objects.
+
+Models and data loaders store user-uploaded code in the \lstinline{src/} folder.
+
+The API provides several standard operations on each object type, including get queries, update, create, and delete. For uploading code and data, the user is required to put all source files and folders into a zip file, which is decompressed on the API server into the datastore.
+
+Even though we store a lot of metadata as JSON documents, we chose not to use a full-fledged NoSQL database like MongoDB or a SQL database like PostgreSQL. Our arguments for this decision include:
+\begin{itemize}
+    \item Consistency: since datasets, model code and loader code need to be placed in a datastore folder, it makes sense to store all data there as well, turning the datastore into a communication hub for the entire system. Using a database would introduce consistency constraints and require various checks and failure scenarios, while potentially slowing down overall performance.
+    \item Simplicity: JSON files are easily read and accessed, which helps keep configuration to a minimum and eliminates complex database integration code.
+    \item Redundancy: With its current features, BK.Synapse would gain little from using databases. Most of our queries are simple get queries that might take even longer when put into databases. However, features like search would compel us to use a database as a mirror to enable efficient queries.
+    \item Finally, this decision is somewhat influenced by DIGITS, which uses a similar directory model to store jobs, albeit with a less portable file format (Pickle).
+\end{itemize}
 
 \subsubsection{Dynamic Code Loading}
-
 The core BK.Synapse runtime is capable of embedding user-defined classes and functions across multiple files/packages into the training procedure. This requires the user to define entrypoints that the runtime can detect. These include:
 \begin{itemize}
     \item A file named \lstinline{bks_model.py}, containing the class \lstinline{UserModel} to define a model. \lstinline{UserModel} must implement a \lstinline{loss()} method that defines the loss function used in training. Optionally, if a \lstinline{metrics()} method is defined, then it is used to calculate additional metrics (eg. accuracy). For PyTorch models, \lstinline{UserModel} must subclass \lstinline{Module}.
@@ -156,6 +180,45 @@ The mechanics for embedding user code is relatively simple, and is partially bas
 	\label{fig:codeload}
 \end{figure}
 
+\subsubsection{Job Monitoring}
+The user's custom model is loaded inside a training script that handles more than model training. Instead, it periodically logs progress information into a status update file (\lstinline{status.json}). Clients can query the corresponding job's endpoint to receive this file's contents, and be notified of the training process. Additionally, status updates are also appended to a \lstinline{history.toml} file, which serves as the job's history logs and used for future analytics. As job histories tend to be very long, we opt to store it as a TOML\footnote{\href{https://github.com/toml-lang/toml}{https://github.com/toml-lang/toml}} array instead of a JSON document. On top of being human readable, TOML arrays can be easily parsed as a file stream without loading the whole document, which immensely improves query speed.
+
+\begin{lstlisting}[caption={An example history.toml file}, language=XML]
+# ===Start===
+[[entry]]
+state = "SETUP"
+isActive = true
+epoch = 0
+isStopped = false
+totalIter = 0
+timestamp = "2019-04-22T03:25:25.741491+00:00"
+iter = 0
+metrics = []
+# ===End===
+
+# ===Start===
+[[entry]]
+state = "TRAINING"
+isActive = true
+epoch = 0
+isStopped = false
+totalIter = 0
+timestamp = "2019-04-22T03:25:36.699942+00:00"
+message = "Starting training..."
+iter = 0
+metrics = []
+# ===End===
+\end{lstlisting}
+
+The BK.Synapse web client polls the API backend every few seconds and update the monitoring UI. Even though this is not as real-time as some other solutions (eg. WebSockets), we argue that there's no penalty for slightly slower progress updates. In this case, we find that the polling model creates a more consistent and stable interface to our system.
+
+The training script also generates a TensorBoard log directory for further analysis, and handles saving checkpoints at regular intervals.
+
+\subsubsection{Node Monitoring}
+Similar to jobs, nodes are monitored using node daemons. A node daemon is deployed at each node, and is in fact a simple Python script that runs an infinite loop. Within the loop, the daemon i) queries CPU and GPU information, ii) updates the node status and iii) waits several seconds to the next loop. Constant information like GPU names, CPU frequency, etc... are collected on startup. Only status information, eg. RAM usage, GPU memory usage,... are constantly queried. This information is also polled and displayed by the BK.Synapse web app.
+
+Each status update also contains a timestamp, used by the API server as a health check mechanism. If a node's timestamp is "stale" (ie. too far away from the current timestamp), that node is declared inactive.
+
 \subsubsection{Parallelization Techniques}
 BK.Synapse's key feature is being able to scale easily across multiple machines. The infrastructure layer supports this by keeping track of node IPs using node daemons, making it easy to add new nodes or detect failures. The actual parallel execution is implemented with Horovod \cite{DBLP:journals/corr/abs-1802-05799} and MPI \cite{Forum:1994:MMI:898758}.
 
@@ -202,6 +265,45 @@ In its current state, BK.Synapse should only be deployed in a trusted, private e
     \item The use of \lstinline{exec()} can create many attack vectors. Since \lstinline{exec()} would execute any Python command, a malicious agent can freely inspect or modify the system. Even though Docker provides some level of isolation, attackers can still easily cripple nodes or retrieve secret data. These vulnerabilities can be patched by setting up less-privileged users, or blocking certain modules from loading.
 \end{itemize}
 
-Since it is somewhat out-of-scope, we will not go into detail on this topic.
+Since this is somewhat out-of-scope, we will not go into detail on this topic.
 
 \section{Case Study: RetinaNet for Text Region Detection}  \label{section:retinanet}
+To fully evaluate BK.Synapse's effectiveness, we investigate its use in training RetinaNet, an existing CNN architecture for object detection.
+
+RetinaNet \cite{Lin_2017} is a network architecture proposed by Lin et al in 2017. RetinaNet is a one-stage detector in similar spirit to YOLO, however it aims to match two-stage detectors in terms of accuracy while maintaining inference speed.
+
+RetinaNet improves primarily on Feature Pyramind Networks (FPN) \cite{Lin_2017_fpn}. FPN works on the intuition that it is better to take advantage of all feature maps (layer outputs) of a network for prediction, instead of just the final output. The reasoning for this is quite simple: smaller objects benefit from large, coarse feature maps where they are more visible, while larger/more complex objects are more easily detected in small, fine feature maps where they are more simplified. The network design is described in Figure \ref{fig:fpn}.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth]{fpn.png}
+	\caption{Feature Pyramid Network}
+	\label{fig:fpn}
+\end{figure}
+
+FPN utilize a secondary CNN architecture called the backbone. The backbone network can be any convolutional neural network, and is typically a commonly used architecture (eg. VGG, ResNet,...). The backbone's convolution blocks make up the bottom-up pathway, where feature maps of different layers are created.
+
+A top-down pathway is used in lieu of a conventional regressor/classifier pair. The final feature map is upsampled (using nearest neighbor upsampling) and added element-wise to the corresponding lower-level feature map from the bottom-up pathway. This addition forms lateral connections, similar to UNet-type architectures. The resulting feature map combines high-level features from later layers, as well as coarse features from the previous layer. It is then fed directly to the shared regressor/classifier heads and produces predictions.
+
+FPN places anchors at each prediction feature map. Each feature layer has gradually larger anchor sizes, with multiple aspect ratios. Labels are assigned to anchors based on its IoU value compared to ground truth boxes. Output boxes across layers are filtered using non-maximal suppression.
+
+RetinaNet employs the same bottom-up to top-down architecture as FPN. The primary improvement in RetinaNet is a novel loss function: Focal Loss. Focal Loss builds upon Balanced Cross Entropy, a modified version of the Cross Entropy function used to handle large class imbalances:
+\begin{equation}
+    CE(p_t) = -\alpha_t log(p_t)
+\end{equation}
+where $\alpha_t$ is a weighting factor determining how much to "focus" on negative examples as opposed to positives. In essence, $\alpha_t$ controls which class is prioritized during the training process. Focal Loss goes one step further and seeks to control how much to prioritize "hard" examples:
+\begin{equation}
+    FL(p_t) = -\alpha_t(1- p_t)^\gamma log(p_t)
+\end{equation}
+where $\gamma$ is the focusing parameter. We can see that by adding the modulating factor $-(1- p_t)^\gamma$, an example's loss diminishes as the model's prediction approaches the ground truth. In other words, \textit{easier} examples are down-weighted, therefore allowing models to focus on hard examples. As $\gamma$ increases, the model focuses more on harder examples. This transition is smooth, as seen in Figure \ref{fig:focal_loss}.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{focal_loss.png}
+	\caption{Focal Loss values over ground truth probability for different values of $\gamma$}
+	\label{fig:focal_loss}
+\end{figure}
+
+Aside from Focal Loss, RetinaNet makes several minor adjustments to FPN, including using different anchor scales at each layer, and different IoU thresholds when assigning anchor labels. RetinaNet was shown to achieve better results on the COCO dataset \ref{lin2014microsoft} than Faster-RCNN, while also being faster.
+
+When applying to the text detection sub-problem, we take special note of the anchors. Unlike regular objects, which often has a ratio from 1:2 to 2:1, text blocks are usually wide. Therefore, the anchors used on COCO in \cite{Lin_2017} would not perform well on this problem. Instead, we add wider ratios of 1:8, 1:6 and 1:4, which better fit our data.
