@@ -1,4 +1,5 @@
 \documentclass[a4paper,12pt]{report}
+
 \usepackage{amsfonts}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage{comment}
@@ -29,7 +30,7 @@
 \usepackage{listings}
 \usepackage[table,xcdraw]{xcolor}
 \usepackage{float}
-\usepackage[justification=centering]{caption}
+\usepackage{caption}
 \usepackage{subfig}
 \usepackage[english]{babel}
 \usepackage{amssymb}
@@ -105,9 +106,6 @@
 \chead{}
 \rhead{}
 
-\title{BK.Synapse: Distributed Training of Deep Neural Networks for Object Detection}
-\author{Phan Ngoc Lan}
-
 \begin{document}
 
 % \maketitle
@@ -145,7 +143,7 @@
     &   &                   \\
     \end{tabular}
     
-    {\fontsize{14}{18}\fontfamily{cmr}\selectfont \textbf{BK.Synapse: Distributed Deep Neural Network Training\\ for Object Detection} }\\[0.9cm]
+    {\fontsize{14}{18}\fontfamily{cmr}\selectfont \textbf{BK.Synapse: Distributed Deep Neural Network Training Framework\\ and its Application in Object Detection} }\\[0.9cm]
     
     \begin{table}[ht]
     \centering
@@ -171,7 +169,11 @@
 \pagebreak
 
 \chapter*{Abstract}
-Training deep neural networks efficiently has been a thoroughly-researched topic over the history of deep learning. However, training at scale usually means adding on multiple layers of complex deployment logic and parallelization concerns, distracting researchers from the core of their algorithms. This thesis presents a framework called BK.Synapse that can facilitate distributed training while maintaining clarity, simplicity, and user-friendliness. The design is modular, allowing flexible and easy deployment on a variety of hardware specifications. We benchmark BK.Synapse in a case study: training a neural network for the object detection problem. Our results show a good amount of speedup over conventional training, with very few modifications to the existing codebase.
+Deep neural networks have seen many breakthroughs in the past several years, being applied to a wide variety of problems. Training these networks efficiently has been a thoroughly-researched topic throughout the history of deep learning. Major advancements have been made, including the use of multiple devices to further decrease training time. However, training at scale usually means adding on multiple layers of complex deployment logic and parallelization concerns, distracting researchers from the core of their algorithms. This thesis presents a framework called BK.Synapse that can facilitate distributed training while maintaining clarity, simplicity, and user-friendliness. The design is modular, allowing flexible and easy deployment on a variety of hardware specifications. We benchmark BK.Synapse in a case study: training a neural network for the object detection problem. Our results show a good amount of speedup over conventional training, with very few modifications to the existing codebase.
+
+\chapter*{Tóm tắt nội dung đồ án}
+Mạng neuron học sâu đã có rất nhiều đột phá mạnh mẽ trong những năm gần đây, và đã được áp dụng vào rất nhiều bài toán thực tế.
+
 \pagebreak
 
 \tableofcontents
@@ -203,6 +205,7 @@ At the same time, there is much room for improving BK.Synapse, which motivates o
 \end{itemize}
 
 \pagebreak
+\addcontentsline{toc}{chapter}{Bibliography}
 \bibliographystyle{plain}
 \bibliography{thesis}
 \end{document}

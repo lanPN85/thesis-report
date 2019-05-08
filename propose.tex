@@ -64,7 +64,7 @@ There are 4 core concepts that define the user's workflow in BK.Synapse (Figure 
 \end{figure}
 \FloatBarrier
 
-\subsection{Architecture}
+\subsection{System Architecture}
 At a high level, BK.Synapse consists of 4 primary components (Figure \ref{fig:architecture}): the API server, worker nodes, data store, and the web application.
 
 \begin{figure}[htp]
@@ -76,7 +76,7 @@ At a high level, BK.Synapse consists of 4 primary components (Figure \ref{fig:ar
 
 The system is designed in a client-server pattern, with loosely coupled components that can be deployed separately. The deployment environment should have high availability (ie. nodes should not fail or shutdown regularly) and trusted.
 
-The API server exposes an application programming interface via HTTP REST\footnote{Representational State Transfer}. Clients can use standard HTTP requests from any supported language to access the system. The server is implemented with the Flask \cite{Grinberg:2014:FWD:2621997} framework.
+The API server exposes an application programming interface via HTTP REST\footnote{Representational State Transfer}. Clients can use standard HTTP requests from any supported language to access the system. The server is implemented using the Flask \cite{Grinberg:2014:FWD:2621997} framework.
 
 Worker nodes handle the bulk of calculations during training. Each node runs a background process called the node daemon, collecting hardware status and notifying BK.Synapse of the node's availability.
 
@@ -122,7 +122,7 @@ Even though a lot of metadata are stored as JSON documents, we chose not to use 
     \item Finally, this decision is somewhat influenced by DIGITS, which uses a similar directory model to store jobs, albeit with a less portable file format (Pickle).
 \end{itemize}
 
-\subsection{Dynamic Code Loading}
+\subsection{User Code Execution}
 The core BK.Synapse runtime is capable of embedding user-defined classes and functions across multiple files/packages into the training procedure. This requires the user to define entrypoints that the runtime can detect. These include:
 \begin{itemize}
     \item A file named \lstinline{bks_model.py}, containing the class \lstinline{UserModel} to define a model. \lstinline{UserModel} must implement a \lstinline{loss()} method that defines the loss function used in training. Optionally, if a \lstinline{metrics()} method is defined, then it is used to calculate additional metrics (eg. accuracy). For PyTorch models, \lstinline{UserModel} must subclass \lstinline{Module}.
@@ -179,8 +179,36 @@ The mechanics for embedding user code is relatively simple, and is partially bas
 	\label{fig:codeload}
 \end{figure}
 
-\subsection{Job Monitoring}
-The user's custom model is loaded inside a training script that handles more than model training. Instead, it periodically logs progress information into a status update file (\lstinline{status.json}). Clients can query the corresponding job's endpoint to receive this file's contents, and be notified of the training process. Additionally, status updates are also appended to a \lstinline{history.toml} file, which serves as the job's history logs and used for future analytics. As job histories tend to be very long, we opt to store it as a TOML\footnote{\href{https://github.com/toml-lang/toml}{https://github.com/toml-lang/toml}} array instead of a JSON document. On top of being human readable, TOML arrays can be easily parsed as a file stream without loading the whole document, which immensely improves query speed.
+\subsection{Parallelization Techniques}
+BK.Synapse's key feature is being able to scale easily across multiple machines. The infrastructure layer supports this by keeping track of node IPs using node daemons, making it easy to add new nodes or detect failures. The actual parallel execution is implemented with Horovod \cite{DBLP:journals/corr/abs-1802-05799} and MPI \cite{Forum:1994:MMI:898758}.
+
+Horovod provides a set of utilities to leverage MPI and associated acceleration methods (eg. NCCL) to perform multi-node training:
+\begin{itemize}
+    \item An \lstinline{hvd.rank()} function that provides the process MPI rank, as well as \lstinline{hvd.local_rank()} to query local MPI rank.
+    \item A \lstinline{DistributedSampler} for PyTorch that partitions datasets into non-colliding sets for each process rank.
+    \item A ring allreduce implementation (\lstinline{hvd.allreduce()}) providing efficient value aggregation.
+    \item A \lstinline{DistributedOptimizer} wrapper for PyTorch that allows networks to be updated over multiple nodes.
+\end{itemize}
+
+The training script is invoked using \lstinline{mpirun}, from a subprocess spawned by the API server when the start endpoint is called. The server collects the selected worker nodes' IPs and generate a command as follow:
+\begin{lstlisting}[language=Bash]
+mpirun --allow-run-as-root -bind-to none -map-by slot\\
+    -mca plm_rsh_args "-p 17992" -mca pml ob1 -mca btl ^openib\\
+    -mca btl_tcp_if_include 192.168.1.0/24  -x LD_LIBRARY_PATH\\
+    -x PATH -x BKSYN_DATA_ROOT -v -np 2\\
+    -H 192.168.1.2:1,192.168.1.8:1\\
+    python /usr/bin/bksynapse/pytorch/train.py\\
+        --job-id d20db7d2-2f22-4f86-bbc7-8e93c5239132
+\end{lstlisting}
+
+A lot of configuration is handled by BK.Synapse to ensure proper MPI communication between nodes, in regards to the \lstinline{-mca} options above.
+
+We make use of the rank 0 node as the logger, periodically writing the job's status to the shared folder. Interrupts are handled using a special lock file (\lstinline{job.lock}) that gets checked at regular intervals.
+
+For nodes with multiple GPUs, the default behavior is to use all those that are available, each getting its own MPI process. We use local rank to pin each process to its respective GPU.
+
+\subsection{Monitoring Mechanisms}
+The training script handles more than model training. In addition, it periodically logs progress information into a status update file (\lstinline{status.json}). Clients can query the corresponding job's endpoint to receive this file's contents, and be notified of the training process. Additionally, status updates are also appended to a \lstinline{history.toml} file, which serves as the job's history logs and used for future analytics. As job histories tend to be very long, we opt to store it as a TOML\footnote{\href{https://github.com/toml-lang/toml}{https://github.com/toml-lang/toml}} array instead of a JSON document. On top of being human readable, TOML arrays can be easily parsed as a file stream without loading the whole document, which immensely improves query speed.
 
 \begin{lstlisting}[caption={An example history.toml file}, language=XML]
 # ===Start===
@@ -213,38 +241,9 @@ The BK.Synapse web client polls the API backend every few seconds and update the
 
 The training script also generates a TensorBoard log directory for further analysis, and handles saving checkpoints at regular intervals.
 
-\subsection{Node Monitoring}
 Similar to jobs, nodes are monitored using node daemons. A node daemon is deployed at each node, and is in fact a simple Python script that runs an infinite loop. Within the loop, the daemon i) queries CPU and GPU information, ii) updates the node status and iii) waits several seconds to the next loop. Constant information like GPU names, CPU frequency, etc... are collected on startup. Only status information, eg. RAM usage, GPU memory usage,... are constantly queried. This information is also polled and displayed by the BK.Synapse web app.
 
-Each status update also contains a timestamp, used by the API server as a health check mechanism. If a node's timestamp is "stale" (ie. too far away from the current timestamp), that node is declared inactive.
-
-\subsection{Parallelization Techniques}
-BK.Synapse's key feature is being able to scale easily across multiple machines. The infrastructure layer supports this by keeping track of node IPs using node daemons, making it easy to add new nodes or detect failures. The actual parallel execution is implemented with Horovod \cite{DBLP:journals/corr/abs-1802-05799} and MPI \cite{Forum:1994:MMI:898758}.
-
-Horovod provides a set of utilities to leverage MPI and associated acceleration methods (eg. NCCL) to perform multi-node training:
-\begin{itemize}
-    \item An \lstinline{hvd.rank()} function that provides the process MPI rank, as well as \lstinline{hvd.local_rank()} to query local MPI rank.
-    \item A \lstinline{DistributedSampler} for PyTorch that partitions datasets into non-colliding sets for each process rank.
-    \item A ring allreduce implementation (\lstinline{hvd.allreduce()}) providing efficient value aggregation.
-    \item A \lstinline{DistributedOptimizer} wrapper for PyTorch that allows networks to be updated over multiple nodes.
-\end{itemize}
-
-The training script is invoked using \lstinline{mpirun}, from a subprocess spawned by the API server when the start endpoint is called. The server collects the selected worker nodes' IPs and generate a command as follow:
-\begin{lstlisting}[language=Bash]
-mpirun --allow-run-as-root -bind-to none -map-by slot\\
-    -mca plm_rsh_args "-p 17992" -mca pml ob1 -mca btl ^openib\\
-    -mca btl_tcp_if_include 192.168.1.0/24  -x LD_LIBRARY_PATH\\
-    -x PATH -x BKSYN_DATA_ROOT -v -np 2\\
-    -H 192.168.1.2:1,192.168.1.8:1\\
-    python /usr/bin/bksynapse/pytorch/train.py\\
-        --job-id d20db7d2-2f22-4f86-bbc7-8e93c5239132
-\end{lstlisting}
-
-A lot of configuration is handled by BK.Synapse to ensure proper MPI communication between nodes, in regards to the \lstinline{-mca} options above.
-
-We make use of the rank 0 node as the logger, periodically writing the job's status to the shared folder. Interrupts are handled using a special lock file (\lstinline{job.lock}) that gets checked at regular intervals.
-
-For nodes with multiple GPUs, the default behavior is to use all those that are available, each getting its own MPI process. We use local rank to pin each process to its respective GPU.
+Each status update also contains a timestamp, used by the API server as a health check mechanism. If a node's timestamp is "stale" (i.e too far away from the current timestamp), that node is declared inactive.
 
 \subsection{Deployment Model}
 All components are packaged as Docker containers for ease of deployment. The only system dependency is the shared data store, which is subsequently mounted to the \lstinline{/data} folder within each container.
@@ -269,9 +268,10 @@ In its current state, BK.Synapse should only be deployed in a trusted, private e
 \begin{itemize}
     \item No access control or authorization has been implemented. This is however an important feature that will eventually be added once the API is more stable.
     \item The use of \lstinline{exec()} can create many attack vectors. Since \lstinline{exec()} would execute any Python command, a malicious agent can freely inspect or modify the system. Even though Docker provides some level of isolation, attackers can still easily cripple nodes or retrieve secret data. These vulnerabilities can be patched by setting up less-privileged users, or blocking certain modules from loading.
+    \item MPI forces an open SSH port to be available on each node, which can be abused to grant full access to system nodes and datastore. This combined with the shared SSH keys bundled with the Docker container can pose a serious security risk.
 \end{itemize}
 
-Since this is somewhat out-of-scope, we will not go into detail on this topic.
+Since this is somewhat out-of-scope, we will not go into detail on this topic. However, these problems will be addressed as the system moves toward public use.
 
 \section{Case Study: RetinaNet for Text Region Detection}  \label{section:retinanet}
 To fully evaluate BK.Synapse's effectiveness, we investigate its use in training RetinaNet, an existing CNN architecture for object detection.
@@ -294,26 +294,18 @@ A top-down pathway is used in conjunction with a conventional regressor/classifi
 
 FPN places anchors at each prediction feature map. Each feature layer has gradually larger anchor sizes, with multiple aspect ratios. Labels are assigned to anchors based on its IoU value compared to ground truth boxes. Specifically, if a ground truth box has IoU > 0.7 to an anchor, the anchor is labeled positive for that box, while an IoU < 0.3 marks a negative. Anchors with no matching boxes are marked as the special "background" class.
 
-The classifier head attempts to classify each anchor to its correct class (either a foreground class or background). This is implemented as a simple 5-layer convolutional network, each with 3x3 kernels and 1 padding (which maintains the output shape). The final convolution layer outputs a tensor whose depth dimension equals $num\_anchors \times num\_classes$ and activated by the $sigmoid$ function. This is used as the classification probability for each anchor (Figure \ref{fig:classifier_head}).
+The classifier head attempts to classify each anchor to its correct class (either a foreground class or background). This is implemented as a simple 5-layer convolutional network, each with 3x3 kernels, stride of 1 and padding of 1 (which maintains the output shape). The final convolution layer outputs a tensor whose depth dimension equals $num\_anchors \times num\_classes$ and activated by the $sigmoid$ function. This is used as the classification probability for each anchor.
+
+The regressor head serves to offset the anchor position to the ground truth box. It's implemented similarly to the classifier, however the final layer outputs a tensor with depth $num\_anchors \times 4$ and no activation. The 4 values represent the x, y offset values for the top left and bottom right corner of each anchor. Figure \ref{fig:subnets} visualizes these subnets.
 
 \begin{figure}[htp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{classifier_head.png}
-	\caption{Transforming classifier head output}
-	\label{fig:classifier_head}
-\end{figure}
-\FloatBarrier
-
-The regressor head serves to offset the anchor position to the ground truth box. It's implemented similarly to the classifier, however the final layer outputs a tensor with depth $num\_anchors \times 4$ and no activation. The 4 values represent the x, y offset values for the top left and bottom right corner of each anchor (Figure \ref{fig:regressor_head}).
-
-\begin{figure}[htp]
-	\centering
-	\includegraphics[width=0.8\textwidth]{regressor_head.png}
-	\caption{Transforming regressor head output}
-	\label{fig:regressor_head}
+	\includegraphics[width=0.95\textwidth]{subnets.png}
+	\caption{Classifier and regressor head architectures}
+	\label{fig:subnets}
 \end{figure}
 
-Output boxes are generated by taking positive foreground anchors and adding their box offsets. Overlapping boxes are merged using non-maximal supression.
+Output boxes are generated by taking positive foreground anchors and adding their box offsets to the corresponding coordinates. Overlapping boxes are merged using non-maximal supression.
 
 Both the classifier and regressor heads are shared among all layer feature maps. The authors in \cite{Lin_2017_fpn} found that using different heads for each layer only showed marginal improvements. This implies that even at different levels of embedding, the learned features are similar enough for a single classifier/regressor to learn from.
 

@@ -1,6 +1,6 @@
 \documentclass[thesis.tex]{subfiles}
 
-\chapter{Results \& Evaluation}
+\chapter{Results and Evaluation}
 \section{Experiment Setup}
 To benchmark BK.Synpase's performance, we trained the presented RetinaNet architecture using the framework. The RetinaNet implementation is written in PyTorch, based on an open source implementation and slightly modified to run on both CPU and GPU for testing purposes. The modified code is available at:\\
 \href{https://github.com/lanPN85/pytorch-retinanet-1}{https://github.com/lanPN85/pytorch-retinanet-1}
@@ -30,7 +30,7 @@ Due to resource constraints, we were only able to test the system on a small 2-m
 \end{figure}
 % \FloatBarrier
 
-The training and test datasets are from ICDAR 2019 RobustReading Challenge on Scanned Receipts OCR and Information Extraction, Task 1\footnote{http://rrc.cvc.uab.es/?ch=13}. The original dataset consists of 626 images of scanned receipts, with annotations for invidual text block positions and their content. We split this data into 532 images for the train set and 94 images for the validation set. While the original challenge is to both locate each block and predict their content, we focus solely on the task of locating blocks using RetinaNet.
+The training and test datasets are from ICDAR 2019 RobustReading Challenge on Scanned Receipts OCR and Information Extraction, Task 1\footnote{http://rrc.cvc.uab.es/?ch=13}. The original dataset consists of 626 images of scanned receipts, with annotations for invidual text block positions and their content. We split this data into 532 images for the train set, 47 images for the validation set and 47 images for the test set. While the original challenge is to both locate each block and predict their content, we focus solely on the task of locating blocks using RetinaNet.
 
 \begin{figure}[htp]
 	\centering
@@ -44,6 +44,7 @@ Our first set of experiments seek to benchmark BK.Synapse's performance when tra
 
 \begin{table}[]
 \centering
+\caption{Benchmark training configuration}
 \begin{tabu} to 0.8\textwidth {|X[c]|X[c]|}
     \hline
     \textbf{Parameter} & \textbf{Value} \\ \hline
@@ -54,7 +55,6 @@ Our first set of experiments seek to benchmark BK.Synapse's performance when tra
     No. epochs & 10 \\ \hline
     Snapshot frequency & 2 \\ \hline
 \end{tabu}
-\caption{Benchmark training configuration}
 \label{tab:train_params}
 \end{table}
 \FloatBarrier
@@ -64,6 +64,7 @@ The listed batch size (2) is the per-node batch size. This value is quite smalle
 This benchmark is primarily concerned with parallelization metrics, including speedup and efficiency when training with multiple CPUs/GPUs, as shown in Table \ref{tab:benchmarks}. We measure the average time in seconds for each epoch and step for comparison. Speedup and efficiency are measured using per epoch time.
 
 \begin{table}[]
+    \caption{Benchmark time, speedup ratio and efficiency index for training RetinaNet in parallel}
     \centering
     \begin{tabu} to \textwidth {|X[c]|c|c|c|c|}
         \hline
@@ -73,7 +74,6 @@ This benchmark is primarily concerned with parallelization metrics, including sp
         1 GPU & 832.79s & 3.04s & - & - \\ \hline
         2 GPUs & 606.14s & 4.48s & 1.37x & 68.70\% \\ \hline
     \end{tabu}
-    \caption{Benchmark time, speedup ratio and efficiency index for training RetinaNet in parallel}
     \label{tab:benchmarks}
 \end{table}
 
@@ -89,7 +89,23 @@ As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the av
 \section{Model Performance}
 In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the ICDAR Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, but set the number of epochs to 50. The network is trained on both N1 and N2 with GPU acceleration.
 
-The model's loss values (regression and classification loss) at each epoch for the training and validation sets are shown in Figures .
+We sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. AP is used as our evaluation metric. The final training results are shown in Table .
+
+\begin{table}[]
+    \centering
+    \caption{Average precision at IoU=0.5 and IoU=0.75 for different values of $\gamma$}
+    \begin{tabu} to \textwidth {|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+        \hline
+         & \multicolumn{3}{c|}{\textbf{AP@0.50}} & \multicolumn{3}{c|}{\textbf{AP@0.75}} \\ \cline{2-7}
+         & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} \\ \hline
+        $\gamma = 0.5$ & - & - & - & - & - & - \\ \hline
+        $\gamma = 1.0$ & - & - & - & - & - & - \\ \hline
+        $\gamma = 2.0$ & - & - & - & - & - & - \\ \hline
+    \end{tabu}
+    \label{tab:benchmarks}
+\end{table}
+
+The best model's loss values (regression and classification loss) at each epoch for the training and validation sets are shown in Figures \ref{fig:train_loss}, \ref{fig:val_loss} and \ref{fig:cmp_loss}.
 
 \begin{figure}[htp]
 	\centering

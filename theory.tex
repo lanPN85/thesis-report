@@ -1,6 +1,6 @@
 \documentclass[thesis.tex]{subfiles}
 
-\chapter{Theoretical Overview \& Related Works}
+\chapter{Theoretical Overview and Related Works}
 \section{Machine Learning}
 Machine Learning (ML) is the study of algorithms and statistical models that perform tasks without explicit instructions, but by learning and inferring from data. Machine learning algorithms produce "models" from data during their training phase, and infer the model's outputs during runtime to produce results on unseen (test) data.
 
@@ -83,7 +83,7 @@ More specifically, these metrics are calculated as follows:
 
 In essence, precision penalizes a model when making false predictions of the given class, while recall penalizes a model's inability to cover all examples of that class. A model that tries to "cheat" in one metric or class (like how our hypothetical "always A" model would have perfect recall for class A) invariably lower other metrics (its precision and recall for classes that aren't A would be zero), thus still having a low F1 score.
 
-\section{Neural Networks \& Deep Learning}
+\section{Neural Networks and Deep Learning}
 \subsection{Artificial Neural Networks}
 Artificial neural networks (commonly referred to as neural networks) are a class of machine learning models inspired by the way biological neural systems process data.
 
@@ -282,7 +282,7 @@ Next, POOL (pooling) layers are used to progressively reduce the spatial size of
 
 \begin{figure}[htp]
 	\centering
-	\includegraphics[width=0.7\textwidth]{maxpool.jpeg}
+	\includegraphics[width=0.6\textwidth]{maxpool.jpeg}
 	\caption{An example of max pooling\protect\footnotemark}
 	\label{fig:maxpool}
 \end{figure}
@@ -294,7 +294,7 @@ CNNs are constructed using "blocks" of (CONV, ReLU, POOL) layers of different si
 
 Later architectures introduce more complex, non-linear ordering of convolution blocks to facilitate learning. ResNet \cite{he2016resnet}, for example, introduces skip connections (forming what's called "residual blocks") between convolution blocks.
 
-\subsection{Object Detection With Convolutional Neural Networks}
+\subsection{Object Detection with Convolutional Neural Networks}
 ConvNets have been successfully applied to many computer vision problems, the most common being classification in which application is quite straightforward (using fully connected layers as the output layer). For object detection, modeling the problem's inputs and outputs with CNNs is somewhat more complex. Two types of model have been proposed and extensively researched to varying results: two-stage detection and single-stage detection.
 
 Two-stage detection splits the problem into two subtasks: finding regions of interest (RoI) where there may be objects, then locating and classifying the single object within each region. The tasks are split out to handle the varying number of objects within each image. Faster R-CNN \cite{ren2015faster} is a good example of a two-stage detector. The input image is put through convolution layers to produce the initial feature map. Then, a small ConvNet is used to generate the ROIs, called the Region Proposal Network. Because ROIs can have arbitrary sizes, they are reshaped using an ROI Pooling layer. ROI pooling works similarly to max pooling, but instead of the whole feature map, it takes the feature map segment corresponding to each ROI, divides it into $m \times n$ section and performs max pooling on those sections to produce the $m \times n$ output. In essence, ROI pooling squashes ROIs of different sizes into uniform representations of their strongest signals. Afterwards, each ROI map is put through a classifier feedforward network to generate the class label. The loss function for the network is the sum of the classification loss for each correctly predicted region, and the regression loss for each predicted box.
@@ -315,7 +315,7 @@ Average precision (AP) is the most common and standard metric for evaluating obj
 
 For object detection, AP is calculated with regards to IoU, in which predictions that overlaps a ground truth box above a certain IoU are considered positives.
 
-\section{Computational Graphs \& Deep Learning Frameworks}
+\section{Computational Graphs and Deep Learning Frameworks}
 \subsection{Computational Graphs}
 Although they are commonly visualized as layers of neurons, neural networks are more often represented as computational graphs.
 
@@ -323,7 +323,7 @@ Computational graphs are directed graphs that express a series of computations. 
 
 \begin{figure}[htp]
 	\centering
-	\includegraphics[width=0.5\textwidth]{cgraph1.png}
+	\includegraphics[width=0.4\textwidth]{cgraph1.png}
 	\caption{An example computational graph with inputs $a$, $b$ and outputs $(a + b)(b + 1)$\protect\footnotemark}
 	\label{fig:cgraph1}
 \end{figure}
@@ -339,7 +339,7 @@ It is trivial to traverse the graph from all input nodes to calculate its output
 % \end{figure}
 % \footnotetext{http://colah.github.io/posts/2015-08-Backprop/}
 
-The fact that neural networks can be modeled as computational graphs has several implications. Most significantly, it means that backpropagation can be done automatically, assuming each op is differentiable. This greatly reduces the amount of work required when designing network architectures, as only the forward pass need to be defined. Moreover, graph optimization methods can be applied to their architectures, allowing them to be more compact and efficient.
+The fact that neural networks can be modeled as computational graphs has several implications. Most significantly, it means that backpropagation can be done automatically, assuming each op is differentiable. This greatly reduces the amount of work required when designing network architectures, as only the forward pass need to be defined.
 
 \subsection{Deep Learning Frameworks} \label{section:dlframeworks}
 The use of computational graphs for deep learning became prevalent in part due to the multiple frameworks that leverage them for automatic gradient calculations. Two of the earliest were Theano (2010) \cite{bergstra2010theano} and Caffe (2014) \cite{jia2014caffe}, followed by Google's TensorFlow (2016) \cite{abadi2016tensorflow}, which remains the most popular framework to date. These tools define the same 2-phase workflow for running neural networks: the first phase where the computational graph is symbolically defined, and the second phase where numerical input is fed to the runtime to execute the graph.
@@ -380,7 +380,7 @@ Something to take note of is the effect of this paradigm on the training results
 
 Another approach, as implemented by the authors of the DistBelief framework \cite{dean2012large}, is to distribute the network graph vertically on multiple nodes. This "striping" appproach avoids constant synchronization between nodes, but also only applicable to large, wide networks whose layers can be efficiently split.
 
-Finally, a strategy called "pipeline backpropagation" was investigated by the authors in \cite{petrowski1993performance}. The idea is similar to striping, where the network graph is distributed across nodes. However, this method partitions the graph horizontally, where each node contains one or several full layers, forming a data pipeline. During training, each node works independently on their own data, disregarding the current state of the whole graph. Updates are performed with a delay, which become more noticeable at deeper layers of the network.
+Finally, a strategy called "pipeline backpropagation" was investigated by the authors in \cite{petrowski1993performance}. The idea is similar to striping, where the network graph is distributed across nodes. However, this method partitions the graph horizontally, where each node contains one or several full layers, forming a data pipeline. During training, each node works independently on their own data, disregarding the current state of the whole graph.
 
 \subsection{Using Graphics Processing Units}
 A breakthrough for training DNNs was the use of Graphic Processing Units (GPUs), as first presented by Raina et al \cite{raina2009gpu} in 2009. Similar to graphics processing, neural networks are trained using operations on large matrices, which benefit from GPUs' multi-core design. Since then, the toolchain for GPU-accelerated neural network has matured significantly. Libraries such as CUDA, CUDNN \cite{chetlur2014cudnn}, and high level interfaces have made training of neural networks on GPUs trivial.
