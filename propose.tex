@@ -65,7 +65,7 @@ There are 4 core concepts that define the user's workflow in BK.Synapse (Figure 
 \FloatBarrier
 
 \subsection{System Architecture}
-At a high level, BK.Synapse consists of 4 primary components (Figure \ref{fig:architecture}): the API server, worker nodes, data store, and the web application.
+At a high level, BK.Synapse consists of 4 primary components: the API server, worker nodes, data store, and the web application (Figure \ref{fig:architecture}).
 
 \begin{figure}[htp]
 	\centering
@@ -108,7 +108,7 @@ BK.Synapse manages objects directly through the filesystem within the shared dat
 	\label{fig:bksynapse_tree}
 \end{figure}
 
-Each object is assigned its own folder. Aside from nodes, whose metadata is provided by the node daemon in \lstinline{info.json}, every object stores metadata in a \lstinline{.bks.meta} file. This is a small JSON file that helps initialize these objects.
+Each object is assigned its own folder. Aside from nodes, whose metadata is provided by the node daemon in \lstinline{info.json}, every object stores metadata in \lstinline{.bks.meta}, a small JSON file that helps initialize these objects.
 
 Models and data loaders store user-uploaded code in the \lstinline{src/} folder.
 
@@ -129,7 +129,7 @@ The core BK.Synapse runtime is capable of embedding user-defined classes and fun
     \item A file named \lstinline{bks_dataset.py}, containing the class \lstinline{UserDataset} and (optionally) \lstinline{UserValDataset}, which define the loading logic for a data loader. PyTorch-compatible loaders need to subclass PyTorch's \lstinline{Dataset} class.
 \end{itemize}
 
-These interfaces are meant to wrap around existing code using inheritance, thus preserving their original behavior and facilitate testing, while still conforming to BK.Synapse's specifications. Simpler models and loaders can simply be written directly into the given class.
+These interfaces are meant to wrap around existing code using inheritance, thus preserving their original behavior and facilitate testing, while still conforming to BK.Synapse's specifications. On the other hand, simpler models and loaders can simply be written directly into the given class.
 
 \begin{lstlisting}[caption={An example UserModel wrapped around a simple CNN}]
 import torch
@@ -170,7 +170,7 @@ class UserModel(Net):
         }
 \end{lstlisting}
 
-The mechanics for embedding user code is relatively simple, and is partially based on DIGIT's method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the model directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating Python's path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
+The mechanics for embedding user code is relatively simple, and is partially based on DIGIT's method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the model directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating Python's path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
 
 \begin{figure}[htp]
 	\centering
@@ -237,7 +237,7 @@ metrics = []
 # ===End===
 \end{lstlisting}
 
-The BK.Synapse web client polls the API backend every few seconds and update the monitoring UI. Even though this is not as real-time as some other solutions (eg. WebSockets), we argue that there's no penalty for slightly slower progress updates. In this case, we find that the polling model creates a more consistent and stable interface to our system.
+The BK.Synapse web client polls the API backend every few seconds and updates the monitoring UI. Even though this is not as real-time as some other solutions (eg. WebSockets), we argue that there's no penalty for slightly slower progress updates. In addition, we find that the polling model creates a more consistent and stable interface to our system.
 
 The training script also generates a TensorBoard log directory for further analysis, and handles saving checkpoints at regular intervals.
 
@@ -246,8 +246,6 @@ Similar to jobs, nodes are monitored using node daemons. A node daemon is deploy
 Each status update also contains a timestamp, used by the API server as a health check mechanism. If a node's timestamp is "stale" (i.e too far away from the current timestamp), that node is declared inactive.
 
 \subsection{Deployment Model}
-All components are packaged as Docker containers for ease of deployment. The only system dependency is the shared data store, which is subsequently mounted to the \lstinline{/data} folder within each container.
-
 MPI requires a single port to be used for SSH connection across all machines. To avoid collision, we use the port 17992, and bind each container to the host machine's network stack.
 
 For optimal performance, we have several deployment recommendations:
@@ -256,11 +254,11 @@ For optimal performance, we have several deployment recommendations:
     \item Node GPUs should have the same or similar capabilities. Otherwise, GPU speed or memory would be capped at the job's lowest-tier GPU, leading to wasted resources.
 \end{itemize}
 
-Our deployment workflow aims for simplicity and minimal configuration, allowing new nodes to be easily deployed. Docker helps isolate a lot of complex environment requirements, including SSH keys which are shared among nodes. Only a few system dependencies need to be setup, including:
+Our deployment workflow aims for simplicity and minimal configuration, allowing new nodes to be easily deployed. Using Docker containers helps isolate a lot of complex environment requirements, including SSH keys which are shared among nodes. Only a few system dependencies need to be setup, including:
 \begin{itemize}
     \item GPU drivers: this component is shared in the NVIDIA-Docker runtime model, and needs to be installed for GPU nodes to function.
     \item Shared drive mount: the datastore mount method is deployment-specific, and needs to be manually configured.
-    \item Networking configurations: several configurations related to network addressses have to be configured, as detecting correct configurations would be too unreliable. These values are mostly related to various IP addresses, and can be quite easily queried.
+    \item Networking configurations: several configurations related to network addressses have to be configured, as detecting correct configurations would be too unreliable. These values are mostly related to the IP address space, and can be trivially queried.
 \end{itemize}
 
 \subsection{Security Concerns}

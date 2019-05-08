@@ -8,6 +8,7 @@ To benchmark BK.Synpase's performance, we trained the presented RetinaNet archit
 Due to resource constraints, we were only able to test the system on a small 2-machine setup. Both machine runs on Ubuntu Linux 18.04, which we denote as N1 and N2. They are connected via an Ethernet connection over a 100Mbps network switch. The shared data folder is on an HDD drive physically connected to N1, and mounted on N2 using Linux NFS mount. Each machine runs a BK.Synapse node daemon, while N2 also hosts the API server and the web application (Figure \ref{fig:deployment}).
 
 \begin{table}[]
+    \caption{Hardware specifications for nodes N1 and N2}
     \centering
     \begin{tabu} to \textwidth {|c|X[c]|X[c]|}
         \hline
@@ -18,7 +19,6 @@ Due to resource constraints, we were only able to test the system on a small 2-m
         GPU & NVIDIA GeForce GTX 1080Ti & NVIDIA GeForce GTX 1080 \\ \hline
         GPU Memory & 12GB & 8GB \\ \hline
     \end{tabu}
-    \caption{Hardware specifications for nodes N1 and N2}
     \label{tab:n1n2_specs}
 \end{table}
 
