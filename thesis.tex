@@ -1,5 +1,5 @@
-\documentclass[a4paper,12pt]{report}
-
+\documentclass[a4paper, 12pt, oneside]{report}
+\usepackage[utf8]{inputenc}
 \usepackage{amsfonts}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage{comment}
@@ -12,7 +12,7 @@
 \usepackage{multicol}
 \usepackage{graphicx}
 \usepackage{subfiles}
-\usepackage[top=2cm, bottom=3cm, left=2cm, right=2cm]{geometry}
+\usepackage[left=3.50cm, right=2.00cm, top=2.00cm, bottom=2.00cm]{geometry}
 \usepackage[numbers]{natbib}
 \usepackage{fancyhdr}
 \usepackage{hyperref}
@@ -28,6 +28,7 @@
 \usepackage{placeins}
 \usepackage{multirow}
 \usepackage{listings}
+\usepackage[nottoc]{tocbibind}
 \usepackage[table,xcdraw]{xcolor}
 \usepackage{float}
 \usepackage{caption}
@@ -35,6 +36,7 @@
 \usepackage[english]{babel}
 \usepackage{amssymb}
 \usepackage{pifont}
+\usepackage[acronym, nonumberlist, shortcuts, toc]{glossaries}
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
 
@@ -92,19 +94,21 @@
 \newcommand{\bigCI}{\mathrel{\text{\scalebox{1.07}{$\perp\mkern-10mu\perp$}}}}
 \renewcommand{\baselinestretch}{1.2}
 
+% \setcounter{page}{3}
 \hypersetup{
     colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-}
-
-% \setcounter{page}{3}
-\hypersetup{colorlinks=true,urlcolor=black,linkcolor=black}
+    urlcolor=blue,
+    linkcolor=black}
 \graphicspath{ {images/} }
 \lhead{}
 \chead{}
 \rhead{}
+
+\makeglossaries
+% \input{acronyms}
+% \input{glossary}
+\loadglsentries[\acronymtype]{acronyms}
+\loadglsentries{glossary}
 
 \begin{document}
 
@@ -174,12 +178,13 @@ Deep neural networks have seen many breakthroughs in the past several years, bei
 \chapter*{Tóm tắt nội dung đồ án}
 Mạng neuron học sâu đã có rất nhiều đột phá mạnh mẽ trong những năm gần đây, và đã được áp dụng vào rất nhiều bài toán thực tế.
 
-\pagebreak
-
 \tableofcontents
 \listoffigures
 \listoftables
-\pagebreak
+
+\glsaddall
+\printglossary[type=\acronymtype,style=long]
+\printglossary
 
 \setcounter{page}{1}
 \pagestyle{fancy}
@@ -205,7 +210,6 @@ At the same time, there is much room for improving BK.Synapse, which motivates o
 \end{itemize}
 
 \pagebreak
-\addcontentsline{toc}{chapter}{Bibliography}
 \bibliographystyle{plain}
 \bibliography{thesis}
 \end{document}
