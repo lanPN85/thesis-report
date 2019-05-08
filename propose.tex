@@ -98,7 +98,7 @@ Finally, the web application is a client that uses the BK.Synapse API, providing
 \end{figure}
 \FloatBarrier
 
-\subsection{Management Model}
+\subsection{Object Management Model}
 BK.Synapse manages objects directly through the filesystem within the shared datastore. The directory structure is shown in Figure \ref{fig:bksynapse_tree}.
 
 \begin{figure}[htp]
@@ -114,11 +114,11 @@ Models and data loaders store user-uploaded code in the \lstinline{src/} folder.
 
 The API provides several standard operations on each object type, including get queries, update, create, and delete. For uploading code and data, the user is required to put all source files and folders into a zip file, which is decompressed on the API server into the datastore.
 
-Even though we store a lot of metadata as JSON documents, we chose not to use a full-fledged NoSQL database like MongoDB or a SQL database like PostgreSQL. Our arguments for this decision include:
+Even though a lot of metadata are stored as JSON documents, we chose not to use a full-fledged NoSQL database like MongoDB or a SQL database like PostgreSQL. Our arguments for this decision include:
 \begin{itemize}
     \item Consistency: since datasets, model code and loader code need to be placed in a datastore folder, it makes sense to store all data there as well, turning the datastore into a communication hub for the entire system. Using a database would introduce consistency constraints and require various checks and failure scenarios, while potentially slowing down overall performance.
-    \item Simplicity: JSON files are easily read and accessed, which helps keep configuration to a minimum and eliminates complex database integration code.
-    \item Redundancy: With its current features, BK.Synapse would gain little from using databases. Most of our queries are simple get queries that might take even longer when put into databases. However, features like search would compel us to use a database as a mirror to enable efficient queries.
+    \item Simplicity: JSON files are easily read and accessed, which helps keep configuration to a minimum and eliminates complex database integration code. This also provides portability, as the entire system state can be easily packaged and replicated.
+    \item Redundancy: With its current features, BK.Synapse would gain little from using databases. Most of our queries are simple get queries that might take even longer when put into databases. However, future improvements such as full-text search would compel us to use a database as a mirror to enable efficient queries.
     \item Finally, this decision is somewhat influenced by DIGITS, which uses a similar directory model to store jobs, albeit with a less portable file format (Pickle).
 \end{itemize}
 
@@ -257,6 +257,13 @@ For optimal performance, we have several deployment recommendations:
     \item Node GPUs should have the same or similar capabilities. Otherwise, GPU speed or memory would be capped at the job's lowest-tier GPU, leading to wasted resources.
 \end{itemize}
 
+Our deployment workflow aims for simplicity and minimal configuration, allowing new nodes to be easily deployed. Docker helps isolate a lot of complex environment requirements, including SSH keys which are shared among nodes. Only a few system dependencies need to be setup, including:
+\begin{itemize}
+    \item GPU drivers: this component is shared in the NVIDIA-Docker runtime model, and needs to be installed for GPU nodes to function.
+    \item Shared drive mount: the datastore mount method is deployment-specific, and needs to be manually configured.
+    \item Networking configurations: several configurations related to network addressses have to be configured, as detecting correct configurations would be too unreliable. These values are mostly related to various IP addresses, and can be quite easily queried.
+\end{itemize}
+
 \subsection{Security Concerns}
 In its current state, BK.Synapse should only be deployed in a trusted, private environment. This is due to a number of security concerns, including:
 \begin{itemize}
@@ -271,7 +278,8 @@ To fully evaluate BK.Synapse's effectiveness, we investigate its use in training
 
 RetinaNet \cite{Lin_2017} is a network architecture proposed by Lin et al in 2017. RetinaNet is a one-stage detector in similar spirit to YOLO, however it aims to match two-stage detectors in terms of accuracy while maintaining inference speed.
 
-RetinaNet improves primarily on Feature Pyramind Networks (FPN) \cite{Lin_2017_fpn}. FPN works on the intuition that it is better to take advantage of all feature maps (layer outputs) of a network for prediction, instead of just the final output. The reasoning for this is quite simple: smaller objects benefit from large, coarse feature maps where they are more visible, while larger/more complex objects are more easily detected in small, fine feature maps where they are more simplified. The network design is described in Figure \ref{fig:fpn}.
+\subsection{Feature Pyramid Network}
+RetinaNet improves primarily on Feature Pyramind Networks (FPN) \cite{Lin_2017_fpn}. FPN works on the intuition that it is better to take advantage of several feature maps (layer outputs) of a network for prediction, instead of just the final output. The reasoning for this is quite simple: smaller objects benefit from large, coarse feature maps where they are more visible, while larger/more complex objects are more easily detected in small, fine feature maps where they are more simplified. The network design is described in Figure \ref{fig:fpn}.
 
 \begin{figure}[htp]
 	\centering
@@ -280,13 +288,39 @@ RetinaNet improves primarily on Feature Pyramind Networks (FPN) \cite{Lin_2017_f
 	\label{fig:fpn}
 \end{figure}
 
-FPN utilize a secondary CNN architecture called the backbone. The backbone network can be any convolutional neural network, and is typically a commonly used architecture (eg. VGG, ResNet,...). The backbone's convolution blocks make up the bottom-up pathway, where feature maps of different layers are created.
+FPN utilizes a secondary CNN architecture called the backbone. The backbone network can be any convolutional neural network, and is typically a commonly used architecture (eg. VGG, ResNet,...). The backbone's convolution blocks make up the bottom-up pathway, where feature maps of different layers are created. The authors define network "stages", in which convolution blocks have the same output size. In the case of ResNet, the authors used the activated output of each stage's residual block as feature maps.
 
-A top-down pathway is used in lieu of a conventional regressor/classifier pair. The final feature map is upsampled (using nearest neighbor upsampling) and added element-wise to the corresponding lower-level feature map from the bottom-up pathway. This addition forms lateral connections, similar to UNet-type architectures. The resulting feature map combines high-level features from later layers, as well as coarse features from the previous layer. It is then fed directly to the shared regressor/classifier heads and produces predictions.
+A top-down pathway is used in conjunction with a conventional regressor/classifier pair. The final feature map is upsampled (using nearest neighbor upsampling) and added element-wise to the corresponding lower-level feature map from the bottom-up pathway. The bottom-up map undergoes 1x1 convolution to generate uniform channel dimensions, while the merged map also goes through a 3x3 convolution layer to reduce aliasing. This addition operation forms lateral connections, similar to UNet-type architectures. The resulting feature map combines high-level features from later layers, as well as coarse features from the previous layer. It is then fed directly to the shared regressor/classifier heads and produces predictions.
 
-FPN places anchors at each prediction feature map. Each feature layer has gradually larger anchor sizes, with multiple aspect ratios. Labels are assigned to anchors based on its IoU value compared to ground truth boxes. Output boxes across layers are filtered using non-maximal suppression.
+FPN places anchors at each prediction feature map. Each feature layer has gradually larger anchor sizes, with multiple aspect ratios. Labels are assigned to anchors based on its IoU value compared to ground truth boxes. Specifically, if a ground truth box has IoU > 0.7 to an anchor, the anchor is labeled positive for that box, while an IoU < 0.3 marks a negative. Anchors with no matching boxes are marked as the special "background" class.
 
-RetinaNet employs the same bottom-up to top-down architecture as FPN. The primary improvement in RetinaNet is a novel loss function: Focal Loss. Focal Loss builds upon Balanced Cross Entropy, a modified version of the Cross Entropy function used to handle large class imbalances:
+The classifier head attempts to classify each anchor to its correct class (either a foreground class or background). This is implemented as a simple 5-layer convolutional network, each with 3x3 kernels and 1 padding (which maintains the output shape). The final convolution layer outputs a tensor whose depth dimension equals $num\_anchors \times num\_classes$ and activated by the $sigmoid$ function. This is used as the classification probability for each anchor (Figure \ref{fig:classifier_head}).
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{classifier_head.png}
+	\caption{Transforming classifier head output}
+	\label{fig:classifier_head}
+\end{figure}
+\FloatBarrier
+
+The regressor head serves to offset the anchor position to the ground truth box. It's implemented similarly to the classifier, however the final layer outputs a tensor with depth $num\_anchors \times 4$ and no activation. The 4 values represent the x, y offset values for the top left and bottom right corner of each anchor (Figure \ref{fig:regressor_head}).
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{regressor_head.png}
+	\caption{Transforming regressor head output}
+	\label{fig:regressor_head}
+\end{figure}
+
+Output boxes are generated by taking positive foreground anchors and adding their box offsets. Overlapping boxes are merged using non-maximal supression.
+
+Both the classifier and regressor heads are shared among all layer feature maps. The authors in \cite{Lin_2017_fpn} found that using different heads for each layer only showed marginal improvements. This implies that even at different levels of embedding, the learned features are similar enough for a single classifier/regressor to learn from.
+
+In \cite{Lin_2017_fpn}, the authors also applied FPN to Faster R-CNN, a two-stage detector, where it functions as the region proposal network. Each target region is mapped to a single feature level, determined by its size. Larger ROIs are put into finer feature maps.
+
+\subsection{Focal Loss}
+RetinaNet employs the same bottom-up to top-down architecture as FPN. The primary improvement in RetinaNet is a novel loss function called Focal Loss. Focal Loss builds upon Balanced Cross Entropy, a modified version of the Cross Entropy function used to handle large class imbalances:
 \begin{equation}
     CE(p_t) = -\alpha_t log(p_t)
 \end{equation}
@@ -303,6 +337,8 @@ where $\gamma$ is the focusing parameter. We can see that by adding the modulati
 	\label{fig:focal_loss}
 \end{figure}
 
-Aside from Focal Loss, RetinaNet makes several minor adjustments to FPN, including using different anchor scales at each layer, and different IoU thresholds when assigning anchor labels. RetinaNet was shown to achieve better results on the COCO dataset \ref{lin2014microsoft} than Faster-RCNN, while also being faster.
+Aside from Focal Loss, RetinaNet makes several minor adjustments to FPN. Different anchor scales are used at each layer for denser anchor coverage. IoU thresholds when assigning anchor labels are also relaxed, with a positive threshold of 0.5 and negative threshold of 0.4.
 
-When applied to the text detection sub-problem, we take special note of the anchors. Unlike regular objects, which often has a ratio from 1:2 to 2:1, text blocks are usually wide. Therefore, the anchors used on COCO in \cite{Lin_2017} would not perform well on this problem. Instead, we add wider ratios of 1:8, 1:6 and 1:4, which better fit our data.
+RetinaNet was shown to achieve better results on the COCO dataset \cite{lin2014microsoft} than Faster-RCNN, while also being faster.
+
+When applied to the text detection problem, we take special note of the anchors. Unlike regular objects, which often has a ratio from 1:2 to 2:1, text blocks are usually wide. Therefore, the anchors used on COCO in \cite{Lin_2017} would not perform well on this problem. Instead, we add wider ratios of 1:8, 1:6 and 1:4, which better fit our data.
