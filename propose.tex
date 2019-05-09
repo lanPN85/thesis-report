@@ -7,10 +7,10 @@ In this section, we present a tool and framework for training neural networks in
 \subsection{Overview \& Motivation}
 BK.Synapse provides a complete set of tools for training neural networks, including model and dataset managements, training configuration, monitoring and exporting results, combined with an intuitive, no-configuration distributed environment.
 
-The use-cases and general design for BK.Synapse are inspired by NVIDIA DIGITS\footnote{\href{https://developer.nvidia.com/digits}{https://developer.nvidia.com/digits}} (Deep Learning GPU Training System). DIGITS' primary use case is training deep neural nets on multiple GPUs, along with several computer vision-related utilities (eg. data visualization). The tool provides an user interface for interacting with and managing datasets, models, etc,... However, there are several downsides to DIGITS' design that motivated the creation of BK.Synapse, namely:
+The use-cases and general design for BK.Synapse are inspired by NVIDIA DIGITS\footnote{\href{https://developer.nvidia.com/digits}{https://developer.nvidia.com/digits}} (Deep Learning GPU Training System). DIGITS' primary use case is training deep neural nets on multiple \glspl{gpu}, along with several computer vision-related utilities (eg. data visualization). The tool provides an user interface for interacting with and managing datasets, models, etc,... However, there are several downsides to DIGITS' design that motivated the creation of BK.Synapse, namely:
 \begin{itemize}
     \item Despite supporting Caffe, TensorFlow and LuaTorch, DIGITS' workflow is heavily optimized for Caffe. This forces major rewrites and reconfiguration for non-Caffe frameworks. For example, TensorFlow models need to be fully written within a single file, while subclassing a parent class that makes testing quite difficult.
-    \item DIGITS was designed for single-machine, local deployment. This means it can only utilize multiple GPUs on the same machine, limiting scalability.
+    \item DIGITS was designed for single-machine, local deployment. This means it can only utilize multiple \glspl{gpu} on the same machine, limiting scalability.
 \end{itemize}
 
 \begin{figure}[htp]
@@ -34,7 +34,7 @@ Due to these limitations, we aim to design BK.Synapse as a distributed training 
     Multiple node support & \xmark & \cmark \\ \hline
     Arbitrary models and datasets & \xmark & \cmark \\ \hline
     Data visualization & \cmark & \xmark \\ \hline
-    Model visualization & \cmark & Partial (via Tensorboard) \\ \hline
+    Model visualization & \cmark & Partial (via \gls{tensorboard}) \\ \hline
     Backends & Caffe, TensorFlow, LuaTorch & PyTorch, Keras (planned), TensorFlow (planned) \\ \hline
 \end{tabu}
 \caption{Feature comparison between DIGITS and BK.Synapse}
@@ -65,7 +65,7 @@ There are 4 core concepts that define the user's workflow in BK.Synapse (Figure 
 \FloatBarrier
 
 \subsection{System Architecture}
-At a high level, BK.Synapse consists of 4 primary components: the API server, worker nodes, data store, and the web application (Figure \ref{fig:architecture}).
+At a high level, BK.Synapse consists of 4 primary components: the \gls{api} server, worker nodes, data store, and the web application (Figure \ref{fig:architecture}).
 
 \begin{figure}[htp]
 	\centering
@@ -76,9 +76,9 @@ At a high level, BK.Synapse consists of 4 primary components: the API server, wo
 
 The system is designed in a client-server pattern, with loosely coupled components that can be deployed separately. The deployment environment should have high availability (ie. nodes should not fail or shutdown regularly) and trusted.
 
-The API server exposes an application programming interface via HTTP REST\footnote{Representational State Transfer}. Clients can use standard HTTP requests from any supported language to access the system. The server is implemented using the Flask \cite{Grinberg:2014:FWD:2621997} framework.
+The API server exposes an application programming interface via HTTP \gls{rest}. Clients can use standard HTTP requests from any supported language to access the system. The server is implemented using the Flask \cite{Grinberg:2014:FWD:2621997} framework.
 
-Worker nodes handle the bulk of calculations during training. Each node runs a background process called the node daemon, collecting hardware status and notifying BK.Synapse of the node's availability.
+Worker nodes handle the bulk of calculations during training. Each node runs a background process called the node \gls{daemon}, collecting hardware status and notifying BK.Synapse of the node's availability.
 
 The data store (or root folder) is used as the shared data space between the API server and worker nodes. It points to a folder that is accessible from all nodes within the system, and contains all user-uploaded data as well as additional metadata. Several mechanisms can be employed to create the data store, namely:
 \begin{itemize}
@@ -114,7 +114,7 @@ Models and data loaders store user-uploaded code in the \lstinline{src/} folder.
 
 The API provides several standard operations on each object type, including get queries, update, create, and delete. For uploading code and data, the user is required to put all source files and folders into a zip file, which is decompressed on the API server into the datastore.
 
-Even though a lot of metadata are stored as JSON documents, we chose not to use a full-fledged NoSQL database like MongoDB or a SQL database like PostgreSQL. Our arguments for this decision include:
+Even though a lot of metadata are stored as JSON documents, we chose not to use a full-fledged \gls{nosql} like MongoDB or a \gls{sql} like PostgreSQL. Our arguments for this decision include:
 \begin{itemize}
     \item Consistency: since datasets, model code and loader code need to be placed in a datastore folder, it makes sense to store all data there as well, turning the datastore into a communication hub for the entire system. Using a database would introduce consistency constraints and require various checks and failure scenarios, while potentially slowing down overall performance.
     \item Simplicity: JSON files are easily read and accessed, which helps keep configuration to a minimum and eliminates complex database integration code. This also provides portability, as the entire system state can be easily packaged and replicated.
@@ -170,7 +170,7 @@ class UserModel(Net):
         }
 \end{lstlisting}
 
-The mechanics for embedding user code is relatively simple, and is partially based on DIGIT's method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the model directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating Python's path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
+The mechanics for embedding user code is relatively simple, and is partially based on DIGIT's method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the model directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating \gls{py}'s path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
 
 \begin{figure}[htp]
 	\centering
@@ -205,7 +205,7 @@ A lot of configuration is handled by BK.Synapse to ensure proper MPI communicati
 
 We make use of the rank 0 node as the logger, periodically writing the job's status to the shared folder. Interrupts are handled using a special lock file (\lstinline{job.lock}) that gets checked at regular intervals.
 
-For nodes with multiple GPUs, the default behavior is to use all those that are available, each getting its own MPI process. We use local rank to pin each process to its respective GPU.
+For nodes with multiple \glspl{gpu}, the default behavior is to use all those that are available, each getting its own MPI process. We use local rank to pin each process to its respective GPU.
 
 \subsection{Monitoring Mechanisms}
 The training script handles more than model training. In addition, it periodically logs progress information into a status update file (\lstinline{status.json}). Clients can query the corresponding job's endpoint to receive this file's contents, and be notified of the training process. Additionally, status updates are also appended to a \lstinline{history.toml} file, which serves as the job's history logs and used for future analytics. As job histories tend to be very long, we opt to store it as a TOML\footnote{\href{https://github.com/toml-lang/toml}{https://github.com/toml-lang/toml}} array instead of a JSON document. On top of being human readable, TOML arrays can be easily parsed as a file stream without loading the whole document, which immensely improves query speed.
@@ -251,7 +251,7 @@ MPI requires a single port to be used for SSH connection across all machines. To
 For optimal performance, we have several deployment recommendations:
 \begin{itemize}
     \item High-speed connections are preferred when setting up the node network(eg. InfiniBand). Note that this does not have to include the web server, since this is separate from the training runtime.
-    \item Node GPUs should have the same or similar capabilities. Otherwise, GPU speed or memory would be capped at the job's lowest-tier GPU, leading to wasted resources.
+    \item Node \glspl{gpu} should have the same or similar capabilities. Otherwise, GPU speed or memory would be capped at the job's lowest-tier GPU, leading to wasted resources.
 \end{itemize}
 
 Our deployment workflow aims for simplicity and minimal configuration, allowing new nodes to be easily deployed. Using Docker containers helps isolate a lot of complex environment requirements, including SSH keys which are shared among nodes. Only a few system dependencies need to be setup, including:
