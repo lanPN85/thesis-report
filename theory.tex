@@ -86,7 +86,7 @@ Artificial neural networks (commonly referred to as neural networks) are a class
 
 A biological neural network is composed of a group or groups of chemically connected or functionally associated neurons. A single neuron may be connected to many other neurons and the total number of neurons and connections in a network may be extensive. Connections, called synapses, are usually formed from axons to dendrites, though dendrodendritic synapses and other connections are possible.
 
-Artificial neural networks employ a much more simplified approximation of this process, where neurons are replaced with simple computational units that perform transformation operations on input data. Despite each neuron's simplicity, the amount of neurons along with their connections allow neural networks to represent incredibly complex functions.
+Artificial neural networks employ a much more simplified approximation of this process, where neurons are replaced with simple computational units that perform transformations on input data. Despite each neuron's simplicity, the amount of neurons along with their connections allow neural networks to represent incredibly complex functions.
 
 The first neural network was proposed in 1958 by Frank Rosenblatt \cite{rosenblatt1958perceptron}, called the Perceptron. A perceptron is basically a single neuron, which consists of a set of weights $W = (w_0,..., w_n)$ and an activation function $f(x)$ (in this case the unit step function). With a continuous vector $X = (1, x_1,..., x_n)$ as input, the output of a perceptron is represented by the function:
 
@@ -163,11 +163,7 @@ Neural networks learn from examples using backpropagation. As the name implies, 
 The error signal is calculated using a loss function. Different problems may utilize different loss functions. Typically, regression problems employ Mean Squared Error (Equation \ref{eq:mse}), while classification problems use the Cross Entropy loss (Equation \ref{eq:cross_enp}). Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
 
 \begin{align}
-	& MSE = \frac{1}{n} \sum_{i=1}^n (y_i - Y-i)^2 \label{eq:mse}
-\end{align}
-where $n$ is the total number of examples.
-
-\begin{align}
+	& MSE = \frac{1}{n} \sum_{i=1}^n (y_i - Y-i)^2 \label{eq:mse}\\
 	& H = - \frac{1}{n} \sum_{i=1}^n (Y_ilog(y_i) + (1-Y_i)log(1-y_i)) \label{eq:cross_enp}
 \end{align}
 where $n$ is the total number of examples.

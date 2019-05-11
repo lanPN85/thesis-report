@@ -280,6 +280,10 @@ Another point we aim to improve is reusing user code. While DIGITS is very strea
 
 We also try to improve on modularity, by separating the web frontend, API server and execution nodes. Although this incurs some additional complexity to communicate between these components, the modular design allows much more flexibility and aids further development.
 
+Feature-wise, DIGITS is obviously more complete, with many utilities and extensions added over its development. On the other hand, BK.Synapse thrives on its flexibility and simplicity. For example, while DIGITS has a seperate plugin for training object detection models, BK.Synpase supports these models, and in fact many other types of model, by design, without any extensions. This allows us to focus on delivering and refining core features.
+
+In a lot of ways, BK.Synapse attempts to be generic, and avoid making assumptions about the user's data or workflow. While this simplifies a lot of the development process and usage, it also prevents us from doing a lot of related data analysis. DIGITS features like data visualization or viewing labels are not available in BK.Synapse, since it's impossible to assume the user's data format. One may argue that these tasks are not what the framework set out to do, since it wouldn't make sense to run simple visualizations in parallel nodes. However, we concede that these types of tasks are not suitable for our framework, and have tried to provide utilities for users to perform these tasks more easily on their own (eg. history logs, snapshots, TensorBoard support,...).
+
 \section{Case Study: RetinaNet for Text Region Detection}  \label{section:retinanet}
 To fully evaluate BK.Synapse's effectiveness, we investigate its use in training RetinaNet, an existing CNN architecture for object detection.
 
