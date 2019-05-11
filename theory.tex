@@ -4,18 +4,15 @@
 \section{Machine Learning}
 \gls{ml} is the study of algorithms and statistical models that perform tasks without explicit instructions, but by learning and inferring from data. Machine learning algorithms produce "models" from data during their training phase, and infer the model's outputs during runtime to produce results on unseen (test) data.
 
-Machine learning is a subfield within artificial intelligence. Most machine learning problems attempt to solve human-centric tasks, such as visual cognition, or language understanding, etc,... Since machine learning is approximate by nature, problems that would require machine learning solutions are often NP or incomputable.
+Machine learning is a subfield within artificial intelligence. Most machine learning algorithms attempt to solve human-centric tasks, such as visual cognition, or language understanding, etc,... Since machine learning is approximate by nature, problems that would require machine learning solutions are often NP or incomputable.
 
-\subsection{Relation to statistics}
 Machine learning is closely related to statistics. A machine learning model provides prediction based on a statistical model of its training data. Although they aim to generalize to new examples, these models are still heavily bound to the training set's distribution. Understanding the statistical properties for each problem is an important step in creating accurate models.
 
-\subsection{Relation to optimization}
 Machine learning also has intimate ties to optimization: many learning problems are formulated as minimization of a loss function on the training set. The loss function represents the discrepancy between the model's predictions and the actual problem instances.
 
 The key difference between machine learning and the above fields is their goals. Statistics and optimization both aim to extract results from the given (training) data, whereas machine learning is concerned with generalizing to unseen data.
 
-\subsection{Basic concepts}
-\subsubsection{Types of learning}
+\subsection{Types of learning}
 There are several types of learning algorithms, including: supervised learning, unsupervised learning, semi-supervised learning, and reinforcement learning.
 
 Supervised algorithms learn from a dataset containing both the inputs and desired outputs (labels). The trained model contains a function that associates any given input with an output, and aims to produce correct outputs for both seen and unseen data. Two sub-types of supervised learning are regression (where the output is a continuous value) and classification (where the output is one or several discrete classes). Common supervised learning algorithms include Naive Bayes classification, \gls{svm}, Decision Trees and Neural Networks. This is the most common type of machine learning, used in domains such as image classification, sentiment analysis, or speech recognition, etc,...
@@ -46,7 +43,7 @@ Finally, reinforcement learning algorithms are modeled as agents within an envir
 % 	\label{fig:word2vec}
 % \end{figure}
 
-\subsubsection{Partitioning datasets}
+\subsection{Partitioning datasets}
 Evaluating the effectiveness of \gls{ml} models differ from other algorithms and statistical models. In this section, we focus on evaluating supervised models.
 
 Supervised \gls{ml} models are trained on a training dataset, however the goal is to produce accurate predictions on unseen data outside this training set. Hence, it's impossible to evaluate on training data, otherwise a model that "learns" by simply memorizing the training set would score perfectly, yet unusable. As such, a subset of labeled data is set aside from training as the test dataset, which only serves to evaluate the model.
@@ -57,7 +54,7 @@ For large datasets, a straightforward split of 3 datasets is often made with a r
 
 When splitting datasets, it can sometimes be important to maintain the distribution of classes or other feature properties in the original data. This technique is called stratified sampling, and is especially critical for datasets that are unevenly distributed.
 
-\subsubsection{Evaluation metrics}
+\subsection{Evaluation metrics}
 Different metrics are used to evaluate machine learning models, depending on the problem domain. Most often, metrics focus on how accurate the model is in performing the given task, however can also include other requirements like efficiency, robustness, scalability or interpretability.
 
 For classification models, the most common metric is accuracy, which measures the ratio of correct classifications made by the model. However, this metric can be noisy on unbalanced datasets. Specifically, if $90\%$ of the dataset belongs to class A, then a classifier that always predicts class A would have $90\%$ accuracy (!). Therefore, 3 other metrics are usually added to evaluation: precision, recall, and F1 score.

@@ -193,15 +193,14 @@
         \end{itemize}
     \section*{Main Tasks of the Thesis}
         \begin{itemize}
-        \item Study the fundamentals of semantic segmentation problem in aerial
-        photography and remote sensing.
-        \item Study supervised learning algorithms in general and convolutional
-        neural network in particular applied to computer vision.
-        \item Propose fully convolutional networks used to solve 2D semantic
-        labelling in aerial photography and remote sensing.
-        \item Present experimental results and benchmark test results.
-        \item Conclude and state future developments of the thesis.
+        \item Study different approaches for training neural networks at scale.
+        \item Study object detection techniques based on deep convolutional neural networks.
+        \item Design and implement the framework.
+        \item Implement a framework-compatible network for object detection.
+        \item Present benchmark test results for the framework and evaluate the neural network model.
+        \item Conclude and outline future developments.
         \end{itemize}
+    
     \section*{Declaration of Student}
     I - Phan Ngoc Lan - hereby warrant that the work and presentation in this thesis are performed by myself under the supervision of \textit{Dr Dinh Viet Sang}.\\\\
     All results presented in this thesis are truthful and are not copied from any other works.\\\\
@@ -221,7 +220,7 @@
     \end{minipage}
     \begin{minipage}[t]{0.5\textwidth}
         \begin{center}
-        \textit{Hanoi, 24th May, 2019\\Supervisor\\[1cm]Dr Dinh Viet Sang}
+    \textit{Hanoi, 24th May, 2019\\Supervisor\\[1cm]Dr Dinh Viet Sang}
         \end{center}
     \end{minipage}
 \end{spacing}
@@ -231,18 +230,18 @@
 \pagebreak
 
 \chapter*{Abstract}
-Deep neural networks have seen many breakthroughs in the past several years, being applied to a wide variety of problems. Training these networks efficiently has been a thoroughly-researched topic throughout the history of deep learning. Major advancements have been made, including the use of multiple devices to further decrease training time. However, training at scale usually means adding on multiple layers of complex deployment logic and parallelization concerns, distracting researchers from the core of their algorithms. This thesis presents a framework called BK.Synapse that can facilitate distributed training while maintaining clarity, simplicity, and user-friendliness. The design is modular, allowing flexible and easy deployment on a variety of hardware specifications. We benchmark BK.Synapse in a case study: training a neural network for the object detection problem. Our results show a good amount of speedup over conventional training, with very few modifications to the existing codebase.
+Deep neural networks have seen many breakthroughs in the past several years, being applied to a wide variety of problems. Training these networks efficiently is a thoroughly-researched topic that plays an important role in their adoption. Major advancements have been made, including the use of multiple devices to further decrease training time. However, training at scale usually means adding on multiple layers of complex deployment logic and parallelization concerns, distracting researchers from the core of their algorithms. Therefore, this thesis presents a framework called BK.Synapse that can facilitate distributed training while maintaining clarity, simplicity, and user-friendliness. The design is modular, allowing flexible and easy deployment on a variety of hardware specifications. We benchmark BK.Synapse in a case study: training a neural network for an object detection problem. Our results show a good amount of speedup over conventional training, with very few modifications to the existing codebase.
 
-\chapter*{Tóm tắt nội dung đồ án}
-Mạng neuron học sâu đã có rất nhiều đột phá mạnh mẽ trong những năm gần đây, và đã được áp dụng vào rất nhiều bài toán thực tế.
+\chapter*{Tóm tắt}
+Mạng neuron đã có rất nhiều đột phá mạnh mẽ trong những năm gần đây, và đã được áp dụng vào rất nhiều bài toán thực tế. Huấn luyện các mạng này một cách hiệu quả là một chủ đề rất được quan tâm, đóng vai trò quan trọng trong việc thử nghiệm cũng như ứng dụng. Nhiều kĩ thuật huấn luyện đã được đề xuất, trong đó bao gồm việc sử dụng nhiều máy tính để tăng hiệu suất. Tuy nhiên, huấn luyện mạng trên quy mô lớn thường kéo theo nhiều tầng triển khai phức tạp và các vấn đề khác liên quan đến các tiến trình phân tán. Từ đó, đồ án đề xuất công cụ BK.Synapse, nhằm cho phép huấn luyện mạng neuron phân tán một cách rõ ràng, đơn giản và thân thiện với người dùng. Công cụ có thể được triển khai 1 cách linh hoạt trên nhiều cấu hình phần cứng. BK.Synapse được kiểm nghiệm thông qua bài toán huấn luyện mạng neuron cho một bài toán phát hiện vật thể. Các kết quả cho thấy tỉ lệ tăng tốc khá tốt so với huấn luyện thông thường, trong khi có chỉnh sửa khá ít so với mã nguồn gốc.
 
 \chapter*{Summary}
 The thesis is divided into 5 chapters:
 \begin{itemize}
     \item Chapter 1 describes the problem of training neural networks at scale, as well as the object detection problem that would be used as a case study.
     \item Chapter 2 presents the theoretical background as well as related works, including machine learning, object detection and distributed training.
-    \item Chapter 3 details the design and implementation of BK.Synapse, the proposed framework, and a case study where the framework is applied in the object detection problem.
-    \item Chapter 4 reports on the results of several experiments on the framework.
+    \item Chapter 3 details the design and implementation of BK.Synapse - the proposed framework - and a case study where it is applied to an object detection problem.
+    \item Chapter 4 reports on the results of several experiments and benchmarks.
     \item Chapter 5 presents our conclusions and lays out plans for future works.
 \end{itemize}
 

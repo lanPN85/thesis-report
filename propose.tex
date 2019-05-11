@@ -271,6 +271,15 @@ In its current state, BK.Synapse should only be deployed in a trusted, private e
 
 Since this is somewhat out-of-scope, we will not go into detail on this topic. However, these problems will be addressed as the system moves toward public use.
 
+\section{Comparison with DIGITS}
+BK.Synapse is most similar in spirit to DIGITS, however we aim to improve on several perceived downsides.
+
+BK.Synapse's key feature is distributed training, as opposed to single-node multi-GPU training in DIGITS. This allows our system to scale horizontally instead of vertically. At the same time, there's more complexity when deploying a distributed system. While DIGITS can be deployed from a single Docker container, it takes a lot more configuration to set up a BK.Synapse cluster.
+
+Another point we aim to improve is reusing user code. While DIGITS is very streamlined for Caffe users, using TensorFlow or Torch code is difficult. BK.Synpase allows more freedom and flexibility for the user's code, creating a more efficient workflow.
+
+We also try to improve on modularity, by separating the web frontend, API server and execution nodes. Although this incurs some additional complexity to communicate between these components, the modular design allows much more flexibility and aids further development.
+
 \section{Case Study: RetinaNet for Text Region Detection}  \label{section:retinanet}
 To fully evaluate BK.Synapse's effectiveness, we investigate its use in training RetinaNet, an existing CNN architecture for object detection.
 
