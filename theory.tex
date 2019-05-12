@@ -54,6 +54,8 @@ For large datasets, a straightforward split of 3 datasets is often made with a r
 
 When splitting datasets, it can sometimes be important to maintain the distribution of classes or other feature properties in the original data. This technique is called stratified sampling, and is especially critical for datasets that are unevenly distributed.
 
+Evaluating models on different datasets can reveal various deficiencies. A model \textit{underfits} when it achieves low metric scores on the training set, implying that the model cannot fit the problem's distribution. Using more powerful/complex models typically solves overfitting. On the other hand, a model \textit{overfits} when it achieves high metric scores on the training set, but low scores on the validation set. This means the model has learned patterns that only exists in the training data, not the desired problem's features. Regularization techniques are used in order to alleviate overfitting.
+
 \subsection{Evaluation metrics}
 Different metrics are used to evaluate machine learning models, depending on the problem domain. Most often, metrics focus on how accurate the model is in performing the given task, however can also include other requirements like efficiency, robustness, scalability or interpretability.
 
@@ -105,7 +107,7 @@ The first neural network was proposed in 1958 by Frank Rosenblatt \cite{rosenbla
 
 The idea of the perceptron eventually expanded into multi layer perceptrons, or better known as artificial neural networks. Architecturally, they differ in that there are multiple "neurons" (or computational units) as opposed to one, and they are divided into layers (Figure \ref{fig:nnet}).
 
-Three types of layer are present in a neural net: the input layer, hidden layers, and the output layer. The input layer is the representation of input data, where each unit simply contains the feature value of an example. Thus, this layer is bound by the size of our feature representation. The hidden layers are transformations performed by the network on the input, each working similarly to a perceptron. Finally, the output layer contains the output values of the network. Typically, this layer returns the values we wish to use as the final result, or values that can be inferred to produce it.
+Three types of layer are present in a neural net: the input layer, hidden layers, and the output layer. The input layer is the representation of input data, where each unit simply contains the feature value of an example. The hidden layers are transformations performed by the network on the input, each working similarly to a perceptron. Finally, the output layer contains the output values of the network. Typically, this layer returns the values we wish to use as the final result, or values that can be inferred to produce it.
 
 \begin{figure}[htp]
 	\centering
@@ -160,7 +162,7 @@ In order for neural networks to represent complex, non-linear models, the activa
 \subsubsection{Backpropagation}
 Neural networks learn from examples using backpropagation. As the name implies, backpropagation works by tracing back from the output layer. Given a training example $X = (x_1,...,x_n)$ and the label $Y$, we first get the network's prediction $y$ using the forward pass. The general idea is to "propagate" the error signal between $y$ and $Y$ to the whole network, or in other words, update the network to decrease prediction error.
 
-The error signal is calculated using a loss function. Different problems may utilize different loss functions. Typically, regression problems employ Mean Squared Error (Equation \ref{eq:mse}), while classification problems use the Cross Entropy loss (Equation \ref{eq:cross_enp}). Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
+The error signal is calculated using a loss function, measuring the discrepancy between predictions and labels. Typically, regression problems employ Mean Squared Error (Equation \ref{eq:mse}), while classification problems use the Cross Entropy loss (Equation \ref{eq:cross_enp}). Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
 
 \begin{align}
 	& MSE = \frac{1}{n} \sum_{i=1}^n (y_i - Y-i)^2 \label{eq:mse}\\

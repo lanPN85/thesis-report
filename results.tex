@@ -85,16 +85,17 @@ As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the av
 	\caption{Average epoch time for different parallel configurations}
 	\label{fig:epochs_chart}
 \end{figure}
+\FloatBarrier
 
 \section{Model Performance}
-In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the \gls{icdar} Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, but set the number of epochs to 50. The network is trained on both N1 and N2 with GPU acceleration.
+In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the \gls{icdar} Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, while the number of epochs is set to 100. The networks are trained on both N1 and N2 with GPU acceleration.
 
-We sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. AP is used as our evaluation metric. The final training results are shown in Table \ref{tab:ap}.
+We sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. \gls{ap} at IoU=0.5 and IoU=0.75 are used as our evaluation metrics. The final training results are shown in Table \ref{tab:ap}.
 
 \begin{table}[]
     \centering
     \caption{Average precision at IoU=0.5 and IoU=0.75 for different values of $\gamma$}
-    \begin{tabu} to \textwidth {|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+    \begin{tabu} to \textwidth {|c|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
         \hline
          & \multicolumn{3}{c|}{\textbf{AP@0.50}} & \multicolumn{3}{c|}{\textbf{AP@0.75}} \\ \cline{2-7}
          & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} \\ \hline
@@ -127,3 +128,5 @@ The best model's loss values (regression and classification loss) at each epoch 
 	\caption{Loss value comparison between the training and validation set}
 	\label{fig:cmp_loss}
 \end{figure}
+
+The loss values implies slight overfitting, and shows with a final \gls{ap} gap of ???. This can be partially attributed to the small training dataset with high example variance. Regardless, the model performs reasonably well on our test examples, with a test \gls{ap} of ???. Further adjustments can be made to better adapt RetinaNet to text boxes, however we will not go into further detail in this case study.

@@ -64,6 +64,8 @@ There are 4 core concepts that define the user's workflow in BK.Synapse (Figure 
 \end{figure}
 \FloatBarrier
 
+Jobs are the key binding object throughout the system, composing different pieces and values into a complete process. Users would first create/upload the components (ie. models, datasets,...) and create jobs to combine them. This allows a lot of flexibility for the user to mix-match and combine compatible components during their experiments. Jobs can also be GPU-accelerated, as long as all its nodes support it.
+
 \subsection{System Architecture}
 At a high level, BK.Synapse consists of 4 primary components: the \gls{api} server, worker nodes, data store, and the web application (Figure \ref{fig:architecture}).
 
@@ -114,7 +116,7 @@ Models and data loaders store user-uploaded code in the \lstinline{src/} folder.
 
 The API provides several standard operations on each object type, including get queries, update, create, and delete. For uploading code and data, the user is required to put all source files and folders into a zip file, which is decompressed on the API server into the datastore.
 
-Even though a lot of metadata are stored as JSON documents, we chose not to use a full-fledged \gls{nosql} like MongoDB or a \gls{sql} like PostgreSQL. Our arguments for this decision include:
+Even though a lot of metadata are stored as JSON documents, we chose not to use a full-fledged \gls{nosql} like MongoDB or a \gls{sql} like PostgreSQL. This decision was motivated by several factors:
 \begin{itemize}
     \item Consistency: since datasets, model code and loader code need to be placed in a datastore folder, it makes sense to store all data there as well, turning the datastore into a communication hub for the entire system. Using a database would introduce consistency constraints and require various checks and failure scenarios, while potentially slowing down overall performance.
     \item Simplicity: JSON files are easily read and accessed, which helps keep configuration to a minimum and eliminates complex database integration code. This also provides portability, as the entire system state can be easily packaged and replicated.
@@ -123,7 +125,7 @@ Even though a lot of metadata are stored as JSON documents, we chose not to use 
 \end{itemize}
 
 \subsection{User Code Execution}
-The core BK.Synapse runtime is capable of embedding user-defined classes and functions across multiple files/packages into the training procedure. This requires the user to define entrypoints that the runtime can detect. These include:
+The core BK.Synapse runtime is capable of embedding user-defined classes and functions across multiple files/packages into the training procedure. Several entrypoints are used, including:
 \begin{itemize}
     \item A file named \lstinline{bks_model.py}, containing the class \lstinline{UserModel} to define a model. \lstinline{UserModel} must implement a \lstinline{loss()} method that defines the loss function used in training. Optionally, if a \lstinline{metrics()} method is defined, then it is used to calculate additional metrics (eg. accuracy). For PyTorch models, \lstinline{UserModel} must subclass \lstinline{Module}.
     \item A file named \lstinline{bks_dataset.py}, containing the class \lstinline{UserDataset} and (optionally) \lstinline{UserValDataset}, which define the loading logic for a data loader. PyTorch-compatible loaders need to subclass PyTorch's \lstinline{Dataset} class.
@@ -245,7 +247,9 @@ Similar to jobs, nodes are monitored using node daemons. A node daemon is deploy
 
 Each status update also contains a timestamp, used by the API server as a health check mechanism. If a node's timestamp is "stale" (i.e too far away from the current timestamp), that node is declared inactive.
 
-\subsection{Deployment Model}
+\subsection{Deployment Methods}
+BK.Synapse components are packaged as Docker images, allowing easy deployment and configuration via containers and tools such as Docker Compose, Kubernetes, etc...
+
 MPI requires a single port to be used for SSH connection across all machines. To avoid collision, we use the port 17992, and bind each container to the host machine's network stack.
 
 For optimal performance, we have several deployment recommendations:
@@ -271,7 +275,7 @@ In its current state, BK.Synapse should only be deployed in a trusted, private e
 
 Since this is somewhat out-of-scope, we will not go into detail on this topic. However, these problems will be addressed as the system moves toward public use.
 
-\section{Comparison with DIGITS}
+\subsection{Comparison with DIGITS}
 BK.Synapse is most similar in spirit to DIGITS, however we aim to improve on several perceived downsides.
 
 BK.Synapse's key feature is distributed training, as opposed to single-node multi-GPU training in DIGITS. This allows our system to scale horizontally instead of vertically. At the same time, there's more complexity when deploying a distributed system. While DIGITS can be deployed from a single Docker container, it takes a lot more configuration to set up a BK.Synapse cluster.

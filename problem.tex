@@ -9,7 +9,7 @@ Training neural networks is a very computationally intensive task, which can tak
 At the same time, distributed environments make it difficult to validate and test new networks. A preferable workflow would be testing a network locally, and deploying to multiple nodes later. As such, minimizing the amount of work required to port between these workflows is also a priority. This thesis aims to design and implement a system that satisfies these criterias.
 
 \section{Object Detection}
-\gls{obj_det} is a computer vision problem that aims to detect instances of semantic objects of a certain class (such as humans, buildings, cars, etc...) in digital images and videos. Formally, object detection is often defined as: given an input image, produce a correct set of bounding boxes and corresponding labels for each defined object within the image. An example is shown in Figure \ref{fig:obj_example}.
+\gls{obj_det} is a computer vision problem that aims to detect instances of semantic objects of a certain class (such as humans, buildings, cars, etc...) in digital images and videos. Formally, object detection is defined as: given an input image, produce a correct set of bounding boxes and corresponding labels for each semantic object within the image. An example is shown in Figure \ref{fig:obj_example}.
 
 \begin{figure}[htp]
 	\centering
@@ -21,7 +21,7 @@ At the same time, distributed environments make it difficult to validate and tes
 
 Object detection has a wide range of applications, most notably in surveillance (detecting people, movement,...) and image retrieval (using detected objects as image tags). It is also commonly applied in conjunction with other computer vision tasks, such as classification, eg. an object of a generic class may be detected and then further classified.
 
-The more difficult task of finding the exact bound for objects (as opposed to bounding boxes) is called semantic segmentation.
+The more difficult task of finding the exact bounds for objects (as opposed to bounding boxes) is called semantic segmentation.
 
 \subsection{Detecting Document Text Regions}
 Physical documents, such as books, reports, receipts,... still hold a large amount of information that's often inaccessible to computers. Digitizing these documents can open up a lot of possible applications, such as archiving historic texts, automatically grading exams, or managing personal finance.
