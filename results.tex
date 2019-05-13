@@ -99,14 +99,14 @@ We sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. \gls
         \hline
          & \multicolumn{3}{c|}{\textbf{AP@0.50}} & \multicolumn{3}{c|}{\textbf{AP@0.75}} \\ \cline{2-7}
          & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} \\ \hline
-        $\gamma = 0.5$ & - & - & - & - & - & - \\ \hline
-        $\gamma = 1.0$ & - & - & - & - & - & - \\ \hline
-        $\gamma = 2.0$ & - & - & - & - & - & - \\ \hline
+        $\gamma = 0.5$ & - & 0.5681 & 0.4336 & - & - & - \\ \hline
+        $\gamma = 1.0$ & - & \textbf{0.6327} & 0.4856 & - & - & - \\ \hline
+        $\gamma = 2.0$ & - & 0.6250 & 0.4970 & - & - & - \\ \hline
     \end{tabu}
     \label{tab:ap}
 \end{table}
 
-The best model's loss values (regression and classification loss) at each epoch for the training and validation sets are shown in Figures \ref{fig:train_loss}, \ref{fig:val_loss} and \ref{fig:cmp_loss}.
+The model performs best on the validation set when $\gamma$ is set to 1.0. This model's loss values (regression and classification loss) at each epoch for the training and validation sets are shown in Figures \ref{fig:train_loss}, \ref{fig:val_loss} and \ref{fig:cmp_loss}.
 
 \begin{figure}[htp]
 	\centering
@@ -129,4 +129,4 @@ The best model's loss values (regression and classification loss) at each epoch 
 	\label{fig:cmp_loss}
 \end{figure}
 
-The loss values implies slight overfitting, and shows with a final \gls{ap} gap of ???. This can be partially attributed to the small training dataset with high example variance. Regardless, the model performs reasonably well on our test examples, with a test \gls{ap} of ???. Further adjustments can be made to better adapt RetinaNet to text boxes, however we will not go into further detail in this case study.
+The loss values implies slight overfitting, and shows with a final \gls{ap} gap of ???. This can be partially attributed to the small training dataset with high example variance. Regardless, the model performs decently on our test examples, with a test \gls{ap} of 0.4856 at IoU=0.5. Further adjustments can be made to better adapt RetinaNet to text boxes, however we were not able to dive too deeply in these techniques during this case study.
