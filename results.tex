@@ -5,7 +5,7 @@
 To benchmark BK.Synpase's performance, we trained the presented RetinaNet architecture using the framework. The RetinaNet implementation is written in PyTorch, based on an open source implementation and slightly modified to run on both CPU and GPU for testing purposes. The modified code is available at:\\
 \href{https://github.com/lanPN85/pytorch-retinanet-1}{https://github.com/lanPN85/pytorch-retinanet-1}
 
-Due to resource constraints, we were only able to test the system on a small 2-machine setup. Both machine runs on Ubuntu Linux 18.04, which we denote as N1 and N2. They are connected via an Ethernet connection over a 100Mbps network switch. The shared data folder is on an HDD drive physically connected to N1, and mounted on N2 using Linux NFS mount. Each machine runs a BK.Synapse node daemon, while N2 also hosts the API server and the web application (Figure \ref{fig:deployment}).
+Due to resource constraints, we were only able to test the system on a small 2-machine setup. Both machines (hereby denoted as N1 and N2) run on Ubuntu Linux 18.04. They are connected via an Ethernet connection over a 100Mbps network switch. The shared data folder is on an HDD drive physically connected to N1, and mounted on N2 using Linux NFS mount. Each machine runs a BK.Synapse node daemon, while N2 also hosts the API server and the web application (Figure \ref{fig:deployment}).
 
 \begin{table}[]
     \caption{Hardware specifications for nodes N1 and N2}
@@ -61,7 +61,7 @@ Our first set of experiments seek to benchmark BK.Synapse's performance when tra
 
 The listed batch size (2) is the per-node batch size. This value is quite smaller than normal, due to the size of the network and the input images. We find that a batch size of 2 avoids out-of-memory errors for our GPUs.
 
-This benchmark is primarily concerned with parallelization metrics, including speedup and efficiency when training with multiple CPUs/GPUs, as shown in Table \ref{tab:benchmarks}. We measure the average time in seconds for each epoch and step for comparison. Speedup and efficiency are measured using per epoch time.
+This benchmark is primarily concerned with parallelization metrics (speedup and efficiency in particular) when training with multiple CPUs/GPUs, as shown in Table \ref{tab:benchmarks}. We measure the average time in seconds for each epoch and step for comparison. Speedup and efficiency are measured using per epoch time.
 
 \begin{table}[]
     \caption{Benchmark time, speedup ratio and efficiency index for training RetinaNet in parallel}
@@ -99,8 +99,8 @@ We sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. \gls
         \hline
          & \multicolumn{3}{c|}{\textbf{AP@0.50}} & \multicolumn{3}{c|}{\textbf{AP@0.75}} \\ \cline{2-7}
          & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} \\ \hline
-        $\gamma = 0.5$ & 0.6286 & 0.5681 & 0.4336 & - & 0.2944 & 0.1717 \\ \hline
-        $\gamma = 1.0$ & 0.6924 & \textbf{0.6327} & 0.4856 & - & \textbf{0.4628} & 0.2920 \\ \hline
+        $\gamma = 0.5$ & 0.6286 & 0.5681 & 0.4336 & 0.3460 & 0.2944 & 0.1717 \\ \hline
+        $\gamma = 1.0$ & 0.6924 & \textbf{0.6327} & 0.4856 & 0.5609 & \textbf{0.4628} & 0.2920 \\ \hline
         $\gamma = 2.0$ & 0.7032 & 0.6250 & 0.4970 & 0.5548 & 0.4125 & 0.2586 \\ \hline
     \end{tabu}
     \label{tab:ap}
