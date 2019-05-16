@@ -43,7 +43,8 @@ Due to these limitations, we aim to design BK.Synapse as a distributed training 
 
 Aside from DIGITS, we also take note of other similar tools in the domain, namely DeepCognition\footnote{\href{https://deepcognition.ai/}{https://deepcognition.ai/}}, Google Colaboratory\footnote{\href{https://colab.research.google.com/}{https://colab.research.google.com/}}, etc,...
 
-BK.Synapse is open source and hosted at \href{https://github.com/lanPN85/BK.Synapse}{https://github.com/lanPN85/BK.Synapse}.
+BK.Synapse is open source and hosted at\\
+\href{https://github.com/lanPN85/BK.Synapse}{https://github.com/lanPN85/BK.Synapse}.
 
 We shall describe BK.Synapse's design and technical implementation in the following sections.
 
@@ -75,6 +76,7 @@ At a high level, BK.Synapse consists of 4 primary components: the \gls{api} serv
 	\caption{BK.Synapse's high-level architecture}
 	\label{fig:architecture}
 \end{figure}
+\FloatBarrier
 
 The system is designed in a client-server pattern, with loosely coupled components that can be deployed separately. The deployment environment should have high availability (ie. nodes should not fail or shutdown regularly) and trusted.
 
@@ -90,7 +92,7 @@ The data store (or root folder) is used as the shared data space between the API
 
 The primary reason to use a native file folder as data store, as opposed to an object store or database is due to accessiblity. As stated, BK.Synapse aims to be simple and user-friendly, and thus should expose a simple folder structure to users instead of a complex data management system. With our setup, users can reuse their data loading logic directly into their BK.Synapse code.
 
-Finally, the web application is a client that uses the BK.Synapse API, providing users with access to the system via a graphical interface (Figure \ref{fig:bks_example_1}). It also includes documentations and various examples of using BK.Synapse. The application is built using the Vue\footnote{\href{https://vuejs.org/}{https://vuejs.org/}} framework.
+Finally, the web application is a client that consumes the BK.Synapse API, providing users with access to the system via a graphical interface (Figure \ref{fig:bks_example_1}). It also includes documentations and various examples of using BK.Synapse. The application is built using the Vue\footnote{\href{https://vuejs.org/}{https://vuejs.org/}} framework.
 
 \begin{figure}[htp]
 	\centering
@@ -128,7 +130,7 @@ Even though a lot of metadata are stored as JSON documents, we chose not to use 
 The core BK.Synapse runtime is capable of embedding user-defined classes and functions across multiple files/packages into the training procedure. Several entrypoints are used, including:
 \begin{itemize}
     \item A file named \lstinline{bks_model.py}, containing the class \lstinline{UserModel} to define a model. \lstinline{UserModel} must implement a \lstinline{loss()} method that defines the loss function used in training. Optionally, if a \lstinline{metrics()} method is defined, then it is used to calculate additional metrics (eg. accuracy). For PyTorch models, \lstinline{UserModel} must subclass \lstinline{Module}.
-    \item A file named \lstinline{bks_dataset.py}, containing the class \lstinline{UserDataset} and (optionally) \lstinline{UserValDataset}, which define the loading logic for a data loader. PyTorch-compatible loaders need to subclass PyTorch's \lstinline{Dataset} class.
+    \item A file named \lstinline{bks_dataset.py}, containing the classes \lstinline{UserDataset} and (optionally) \lstinline{UserValDataset}, which define the loading logic for a data loader. PyTorch-compatible loaders need to subclass PyTorch's \lstinline{Dataset} class.
 \end{itemize}
 
 These interfaces are meant to wrap around existing code using inheritance, thus preserving their original behavior and facilitate testing, while still conforming to BK.Synapse's specifications. On the other hand, simpler models and loaders can simply be written directly into the given class. Thus, adapting a model to BK.Synapse simply means writing extra classes that bridge the original network behaviors to the framework's standards.
@@ -172,7 +174,7 @@ class UserModel(Net):
         }
 \end{lstlisting}
 
-The mechanics for embedding user code is relatively simple, and is partially based on DIGIT's method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the model directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating \gls{py}'s path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
+The mechanics for embedding user code is relatively simple, and is partially based on DIGIT's method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the source directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating \gls{py}'s path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
 
 \begin{lstlisting}[caption={Code loading logic for UserModel}]
 def load_model(self):
@@ -312,7 +314,7 @@ In a lot of ways, BK.Synapse attempts to be generic, and avoid making assumption
 \section{Case Study: RetinaNet for Text Region Detection}  \label{section:retinanet}
 To fully evaluate BK.Synapse's effectiveness, we investigate its use in training RetinaNet, an existing CNN architecture for object detection.
 
-RetinaNet \cite{Lin_2017} is a network architecture proposed by Lin et al in 2017. RetinaNet is a one-stage detector in similar spirit to YOLO, however it aims to match two-stage detectors in terms of accuracy while maintaining inference speed.
+RetinaNet \cite{Lin_2017} is a network architecture proposed by Lin et al in 2017. RetinaNet is a one-stage detector in similar spirit to YOLO, however it aims to match two-stage detectors in terms of accuracy while maintaining fast inference speed.
 
 \subsection{Feature Pyramid Network}
 RetinaNet improves primarily on Feature Pyramind Networks (FPN) \cite{Lin_2017_fpn}. FPN works on the intuition that it is better to take advantage of several feature maps (layer outputs) of a network for prediction, instead of just the final output. The reasoning for this is quite simple: smaller objects benefit from large, coarse feature maps where they are more visible, while larger/more complex objects are more easily detected in small, fine feature maps where they are more simplified. The network design is described in Figure \ref{fig:fpn}.
@@ -324,7 +326,7 @@ RetinaNet improves primarily on Feature Pyramind Networks (FPN) \cite{Lin_2017_f
 	\label{fig:fpn}
 \end{figure}
 
-FPN utilizes a secondary CNN architecture called the backbone. The backbone network can be any convolutional neural network, and is typically a commonly used architecture (eg. VGG, ResNet,...). The backbone's convolution blocks make up the bottom-up pathway, where feature maps of different layers are created. The authors define network "stages", in which convolution blocks have the same output size. In the case of ResNet, the authors used the activated output of each stage's residual block as feature maps.
+FPN utilizes a secondary CNN architecture called the backbone. The backbone network can be any convolutional neural network, and is typically a commonly used architecture (eg. VGG, ResNet,...). The backbone's convolution blocks make up the bottom-up pathway, where feature maps of different layers are created. The authors define network "stages", in which convolution blocks have the same output size. In the case of ResNet, they used the activated output of each stage's residual block as feature maps.
 
 A top-down pathway is used in conjunction with a conventional regressor/classifier pair. The final feature map is upsampled (using nearest neighbor upsampling) and added element-wise to the corresponding lower-level feature map from the bottom-up pathway. The bottom-up map undergoes 1x1 convolution to generate uniform channel dimensions, while the merged map also goes through a 3x3 convolution layer to reduce aliasing. This addition operation forms lateral connections, similar to UNet-type architectures. The resulting feature map combines high-level features from later layers, as well as coarse features from the previous layer. It is then fed directly to the shared regressor/classifier heads and produces predictions.
 
