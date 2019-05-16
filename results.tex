@@ -77,7 +77,7 @@ This benchmark is primarily concerned with parallelization metrics (speedup and 
     \label{tab:benchmarks}
 \end{table}
 
-As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the average step time compared to single-node setups. For CPU runs, step time increases from 7.92s to 10.41s, whereas GPU runs increase from 3.04s to 4.48s. However, since epochs are now shorter, the overall epoch time is sped up. ON average, a CPU epoch decreases by approximately 700s (11 minutes), and a GPU epoch decreases by 200s (3 minutes). a On 2 GPUs, BK.Synapse achieves a somewhat average efficiency index of 68.70\%. On 2 CPUs, efficiency is slightly higher at 75.00\%. This leaves quite some room for improvements, especially in terms of framework-specific tasks like logging and monitoring. However, the training speedup is still significant, and can be very useful in practice. Figure \ref{fig:epochs_chart} shows the average epoch time between these configurations and the "ideal" runtime (ie. efficiency equals 100\%).
+As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the average step time compared to single-node setups. For CPU runs, step time increases from 7.92s to 10.41s, whereas GPU runs increase from 3.04s to 4.48s. However, since epochs are now shorter, the overall epoch time is sped up. ON average, a CPU epoch decreases by approximately 700s (11 minutes), and a GPU epoch decreases by 200s (3 minutes). a On 2 GPUs, BK.Synapse achieves a somewhat average efficiency index of 68.70\%. On 2 CPUs, efficiency is slightly higher at 75.00\%. This leaves quite some room for improvements, especially in terms of framework-specific tasks like logging and monitoring. However, the training speedup is still significant, and can be very useful in practice. Figure \ref{fig:epochs_chart} shows the average epoch time between these configurations and the "ideal" runtime (ie. 100\% efficiency).
 
 \begin{figure}[htp]
 	\centering
@@ -129,4 +129,4 @@ The model performs best on the validation set when $\gamma$ is set to 1.0. This 
 	\label{fig:cmp_loss}
 \end{figure}
 
-The loss values implies slight overfitting. This can be partially attributed to the high variance in the dataset. As such, the model performs rather poorly on our test examples, with a test \gls{ap} of 0.4856 at IoU=0.5. Further adjustments can be made to better adapt RetinaNet to text boxes, however we were not able to dive too deeply in these techniques during this case study.
+The loss values implies overfitting, as validation loss does not decrease past epoch 17, while training loss improves steadily. This can be partially attributed to the high variance in the dataset. As such, the model performs rather poorly on our test examples, with a test \gls{ap} of 0.4856 at IoU=0.5. Further adjustments can be made to better adapt RetinaNet to text boxes, however we were not able to dive too deeply in these techniques during this case study.

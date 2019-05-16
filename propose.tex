@@ -131,7 +131,7 @@ The core BK.Synapse runtime is capable of embedding user-defined classes and fun
     \item A file named \lstinline{bks_dataset.py}, containing the class \lstinline{UserDataset} and (optionally) \lstinline{UserValDataset}, which define the loading logic for a data loader. PyTorch-compatible loaders need to subclass PyTorch's \lstinline{Dataset} class.
 \end{itemize}
 
-These interfaces are meant to wrap around existing code using inheritance, thus preserving their original behavior and facilitate testing, while still conforming to BK.Synapse's specifications. On the other hand, simpler models and loaders can simply be written directly into the given class.
+These interfaces are meant to wrap around existing code using inheritance, thus preserving their original behavior and facilitate testing, while still conforming to BK.Synapse's specifications. On the other hand, simpler models and loaders can simply be written directly into the given class. Thus, adapting a model to BK.Synapse simply means writing extra classes that bridge the original network behaviors to the framework's standards.
 
 \begin{lstlisting}[caption={An example UserModel wrapped around a simple CNN}]
 import torch
@@ -174,12 +174,33 @@ class UserModel(Net):
 
 The mechanics for embedding user code is relatively simple, and is partially based on DIGIT's method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the model directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating \gls{py}'s path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
 
+\begin{lstlisting}[caption={Code loading logic for UserModel}]
+def load_model(self):
+    model = None
+    # Path insertion
+    sys.path.insert(0, self.src_path)
+    
+    if self.backend == 'pytorch':
+        with open(self.model_def_path, 'rt') as f:
+            exec(f.read(), globals())  # Code execution
+            _ = UserModel.loss
+            model = UserModel()  # Model initialized
+        if self.has_weights:
+            # Load weights if neccessary
+            model.load_state_dict(torch.load(self.weight_path))
+    
+    # Avoid polluting path
+    sys.path.remove(self.src_path)
+    return model
+\end{lstlisting}
+
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.95\textwidth]{codeload.png}
 	\caption{Dynamic code loading procedure}
 	\label{fig:codeload}
 \end{figure}
+\FloatBarrier
 
 \subsection{Parallelization Techniques}
 BK.Synapse's key feature is being able to scale easily across multiple machines. The infrastructure layer supports this by keeping track of node IPs using node daemons, making it easy to add new nodes or detect failures. The actual parallel execution is implemented with Horovod \cite{DBLP:journals/corr/abs-1802-05799} and MPI \cite{Forum:1994:MMI:898758}.
@@ -192,7 +213,7 @@ Horovod provides a set of utilities to leverage MPI and associated acceleration 
     \item A \lstinline{DistributedOptimizer} wrapper for PyTorch that allows networks to be updated over multiple nodes.
 \end{itemize}
 
-The training script is invoked using \lstinline{mpirun}, from a subprocess spawned by the API server when the start endpoint is called. The server collects the selected worker nodes' IPs and generate a command as follow:
+The training script is invoked using \lstinline{mpirun}, from a subprocess spawned by the API server when the start endpoint is called, making it the MPI monitor node. The server collects the selected worker nodes' IPs and generates a command as follow:
 \begin{lstlisting}[language=Bash]
 mpirun --allow-run-as-root -bind-to none -map-by slot\\
     -mca plm_rsh_args "-p 17992" -mca pml ob1 -mca btl ^openib\\
@@ -203,7 +224,7 @@ mpirun --allow-run-as-root -bind-to none -map-by slot\\
         --job-id d20db7d2-2f22-4f86-bbc7-8e93c5239132
 \end{lstlisting}
 
-A lot of configuration is handled by BK.Synapse to ensure proper MPI communication between nodes, in regards to the \lstinline{-mca} options above.
+A lot of configuration is handled by BK.Synapse to ensure proper MPI communication between nodes, in regards to the \lstinline{-mca} options above. For more details, the training script for PyTorch can be found at \lstinline{bksynapse-base/bin/pytorch/train.py}.
 
 We make use of the rank 0 node as the logger, periodically writing the job's status to the shared folder. Interrupts are handled using a special lock file (\lstinline{job.lock}) that gets checked at regular intervals.
 
