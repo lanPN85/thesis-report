@@ -63,7 +63,7 @@ The listed batch size (2) is the per-node batch size. This value is quite smalle
 
 This benchmark is primarily concerned with parallelization metrics (speedup and efficiency in particular) when training with multiple CPUs/GPUs, as shown in Table \ref{tab:benchmarks}. We measure the average time in seconds for each epoch and step for comparison. Speedup and efficiency are measured using per epoch time.
 
-\begin{table}[]
+\begin{table}[htp]
     \caption{Benchmark time, speedup ratio and efficiency index for training RetinaNet in parallel}
     \centering
     \begin{tabu} to \textwidth {|X[c]|c|c|c|c|}
@@ -88,45 +88,65 @@ As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the av
 \FloatBarrier
 
 \section{Model Performance}
-In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the \gls{icdar} Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, while the number of epochs is set to 100. The networks are trained on both N1 and N2 with GPU acceleration.
+In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the \gls{icdar} Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, while the number of epochs is set to 50. The networks are trained on both N1 and N2 with GPU acceleration.
 
-We sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. \gls{ap} at IoU=0.5 and IoU=0.75 are used as our evaluation metrics. The final training results are shown in Table \ref{tab:ap}.
+We first sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. \gls{ap} at IoU=0.5 and IoU=0.75 are used as our evaluation metrics. The final training results are shown in Table \ref{tab:ap}.
 
-\begin{table}[]
+\begin{table}[htp]
     \centering
     \caption{Average precision at IoU=0.5 and IoU=0.75 for different values of $\gamma$}
-    \begin{tabu} to \textwidth {|c|X[c]|X[c]|X[c]|X[c]|X[c]|X[c]|}
+    \begin{tabu} to \textwidth {|c|X[c]|X[c]|X[c]|X[c]|}
         \hline
-         & \multicolumn{3}{c|}{\textbf{AP@0.50}} & \multicolumn{3}{c|}{\textbf{AP@0.75}} \\ \cline{2-7}
-         & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} & \textbf{Train set} & \textbf{Val set} & \textbf{Test set} \\ \hline
-        $\gamma = 0.5$ & 0.6286 & 0.5681 & 0.4336 & 0.3460 & 0.2944 & 0.1717 \\ \hline
-        $\gamma = 1.0$ & 0.6924 & \textbf{0.6327} & 0.4856 & 0.5609 & \textbf{0.4628} & 0.2920 \\ \hline
-        $\gamma = 2.0$ & 0.7032 & 0.6250 & 0.4970 & 0.5548 & 0.4125 & 0.2586 \\ \hline
+         & \multicolumn{2}{c|}{\textbf{AP@0.50}} & \multicolumn{2}{c|}{\textbf{AP@0.75}} \\ \cline{2-5}
+         & \textbf{Train set} & \textbf{Val set} & \textbf{Train set} & \textbf{Val set} \\ \hline
+        $\gamma = 0.5$ & 0.6286 & 0.5681 & 0.3460 & 0.2944\\ \hline
+        $\gamma = 1.0$ & 0.6924 & \textbf{0.6327} & 0.5609 & \textbf{0.4628} \\ \hline
+        $\gamma = 2.0$ & 0.7032 & 0.6250 & 0.5548 & 0.4125 \\ \hline
     \end{tabu}
     \label{tab:ap}
 \end{table}
+\FloatBarrier
 
-The model performs best on the validation set when $\gamma$ is set to 1.0. This version's loss values (regression and classification loss) at each epoch for the training and validation sets are shown in Figures \ref{fig:train_loss}, \ref{fig:val_loss} and \ref{fig:cmp_loss}.
+It is clear that the model performs best on the validation set when $\gamma$ is set to 1.0. However, this version still performs quite poorly at only 63\% AP on our validation data. Thus, we introduce several modifications:
+\begin{itemize}
+    \item Extra-dense anchors are introduced on every levels. Specifically, we set the ratio list to (0.075, 0.125, 0.25, 0.5, 1, 1.5), and use scales of (0.1, 0.25, 0.4, 0.55, 0.7, 1, 1.2, 1.6, 2). This accounts for the high variance in box size and ratio in the dataset, especially very wide and very small boxes.
+    \item We use the larger ResNet-101 architecture in place of ResNet-50.
+    \item The backbone network is pretrained on ImageNet before being trained on our dataset.
+\end{itemize}
+
+We denote this improved model RetinaNet-101-DA, and the original model RetinaNet-50. Their performances are compared in Table \ref{tab:ap2}.
+
+\begin{table}[]
+    \centering
+    \caption{Average precision at IoU=0.5 and IoU=0.75 for RetinaNet-50 and RetinaNet-101-DA}
+    \begin{tabu} to \textwidth {|l|X[c]|X[c]|X[c]|X[c]|}
+        \hline
+         & \multicolumn{2}{c|}{\textbf{AP@0.50}} & \multicolumn{2}{c|}{\textbf{AP@0.75}} \\ \cline{2-5}
+         & \textbf{Train set} & \textbf{Val set} & \textbf{Train set} & \textbf{Val set} \\ \hline
+        RetinaNet-50 & 0.6924 & 0.6327 & 0.5609 & 0.4628 \\ \hline
+        RetinaNet-101-DA & 0.9177 & \textbf{0.8075} & 0.6252 & \textbf{0.5163}\\ \hline
+    \end{tabu}
+    \label{tab:ap2}
+\end{table}
+\FloatBarrier
+
+RetinaNet-101-DA achieves 0.7824 AP@0.5 and 0.4313 AP@0.75 in the test set. The model mostly struggles with very small boxes or images with too much extra whitespace, in which boxes shrink significantly.
+
+Several training statistics for RetinaNet-101-DA are shown in Figures \ref{fig:train_loss} and \ref{fig:mAP}.
 
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=0.9\textwidth]{train_loss.png}
-	\caption{Regression loss and classification loss over epochs on the training set}
+	\caption{Regression loss and classification loss over epochs on the training set for RetinaNet-101-DA}
 	\label{fig:train_loss}
 \end{figure}
 
 \begin{figure}[htp]
 	\centering
-	\includegraphics[width=0.9\textwidth]{val_loss.png}
-	\caption{Regression loss and classification loss over epochs on the validation set}
-	\label{fig:val_loss}
+	\includegraphics[width=0.9\textwidth]{mAP.png}
+	\caption{AP@0.5 over epochs on the validation set for RetinaNet-101-DA}
+	\label{fig:mAP}
 \end{figure}
+\FloatBarrier
 
-\begin{figure}[htp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{cmp_loss.png}
-	\caption{Loss value comparison between the training and validation set}
-	\label{fig:cmp_loss}
-\end{figure}
-
-The loss values implies overfitting, as validation loss does not decrease past epoch 17, while training loss improves steadily. This can be partially attributed to the high variance in the dataset. As such, the model performs rather poorly on our test examples, with a test \gls{ap} of 0.4856 at IoU=0.5. Further adjustments can be made to better adapt RetinaNet to text boxes, however we were not able to dive too deeply in these techniques during this case study.
+Our results show slight overfitting, with a 10\% AP gap between the training set and validation set. Given the small size of the training data, however, this is expected. Overall, RetinaNet-101-DA improves significantly over the generic configurations used with RetinaNet-50.
