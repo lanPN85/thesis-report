@@ -130,7 +130,7 @@ We denote this improved model RetinaNet-101-DA, and the original model RetinaNet
 \end{table}
 \FloatBarrier
 
-RetinaNet-101-DA achieves 0.7824 AP@0.5 and 0.4313 AP@0.75 on the test set. The model mostly struggles with very small boxes or images with too much extra whitespace, in which boxes shrink significantly.
+RetinaNet-101-DA achieves 0.7824 AP@0.5 and 0.4313 AP@0.75 on the test set. The model mostly struggles with very small boxes or images with too much extra whitespace, in which boxes shrink significantly. We identify this as the primary cause for errors in this dataset, as boxes of very varying sizes can really strain the regressor and affect overall performance.
 
 Several training statistics for RetinaNet-101-DA are shown in Figures \ref{fig:train_loss} and \ref{fig:mAP}.
 
