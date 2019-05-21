@@ -6,3 +6,4 @@
 !*.sh
 !*.bib
 !README.md
+!Makefile
