@@ -1,7 +1,7 @@
 \documentclass[thesis.tex]{subfiles}
 
 \chapter{Proposed Framework}
-\section{BK.Synapse - A Framework for Distributed Neural Network Training}
+\section{BK.Synapse - A Framework for Distributed\\ Neural Network Training}
 In this section, we present a tool and framework for training neural networks in a distributed manner called BK.Synapse.
 
 \subsection{Overview \& Motivation}
@@ -12,14 +12,6 @@ The use-cases and general design for BK.Synapse are inspired by NVIDIA DIGITS\fo
     \item Despite supporting Caffe, TensorFlow and LuaTorch, DIGITS' workflow is heavily optimized for Caffe. This forces major rewrites and reconfiguration for non-Caffe frameworks. For example, TensorFlow models need to be fully written within a single file, while subclassing a parent class that makes testing quite difficult.
     \item DIGITS was designed for single-machine, local deployment. This means it can only utilize multiple \glspl{gpu} on the same machine, limiting scalability.
 \end{itemize}
-
-\begin{figure}[htp]
-	\centering
-	\includegraphics[width=\textwidth]{digits.png}
-	\caption{An example of DIGITS' user interface}
-	\label{fig:digits}
-\end{figure}
-\FloatBarrier
 
 Due to these limitations, we aim to design BK.Synapse as a distributed training framework with little to no development overhead. Users should be able to train networks on multiple nodes with ease, while making minimal modifications to their existing codebases. With this in mind, we also target the more user-friendly PyTorch as the primary deep learning backend, with planned support for Keras and TensorFlow in the future. Table \ref{tab:digits_compare} shows a detailed comparison between BK.Synapse and DIGITS.
 
@@ -76,7 +68,6 @@ At a high level, BK.Synapse consists of 4 primary components: the \gls{api} serv
 	\caption{BK.Synapse's high-level architecture}
 	\label{fig:architecture}
 \end{figure}
-\FloatBarrier
 
 The system is designed in a client-server pattern, with loosely coupled components that can be deployed separately. The deployment environment should have high availability (ie. nodes should not fail or shutdown regularly) and trusted.
 
@@ -84,6 +75,7 @@ The API server exposes an application programming interface via HTTP \gls{rest}.
 
 Worker nodes handle the bulk of calculations during training. Each node runs a background process called the node \gls{daemon}, collecting hardware status and notifying BK.Synapse of the node's availability.
 
+\FloatBarrier
 The data store (or root folder) is used as the shared data space between the API server and worker nodes. It points to a folder that is accessible from all nodes within the system, and contains all user-uploaded data as well as additional metadata. Several mechanisms can be employed to create the data store, namely:
 \begin{itemize}
     \item Using filesystem mount: The data store is created on one node, then mounted throughout the network using Linux's NFS or SMBD protocol. This provides good guarantees in terms of writes, however there may be overhead during training when data files need to be continually read.
@@ -96,7 +88,7 @@ Finally, the web application is a client that consumes the BK.Synapse API, provi
 
 \begin{figure}[htp]
 	\centering
-	\includegraphics[width=\textwidth]{bks_example_1.png}
+	\includegraphics[width=0.95\textwidth,frame]{bks_example_1.png}
 	\caption{The BK.Synapse web application}
 	\label{fig:bks_example_1}
 \end{figure}
@@ -174,7 +166,7 @@ class UserModel(Net):
         }
 \end{lstlisting}
 
-The mechanics for embedding user code is relatively simple, and is partially based on DIGIT's method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the source directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating \gls{py}'s path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
+The mechanics for embedding user code is relatively simple, and is partially based on DIGITS' method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the source directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating \gls{py}'s path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
 
 \begin{lstlisting}[caption={Code loading logic for UserModel}]
 def load_model(self):
@@ -217,11 +209,12 @@ Horovod provides a set of utilities to leverage MPI and associated acceleration 
 
 The training script is invoked using \lstinline{mpirun}, from a subprocess spawned by the API server when the start endpoint is called, making it the MPI monitor node. The server collects the selected worker nodes' IPs and generates a command as follow:
 \begin{lstlisting}[language=Bash]
-mpirun --allow-run-as-root -bind-to none -map-by slot\\
-    -mca plm_rsh_args "-p 17992" -mca pml ob1 -mca btl ^openib\\
-    -mca btl_tcp_if_include 192.168.1.0/24  -x LD_LIBRARY_PATH\\
-    -x PATH -x BKSYN_DATA_ROOT -v -np 2\\
-    -H 192.168.1.2:1,192.168.1.8:1\\
+mpirun --allow-run-as-root -bind-to none 
+    -map-by slot -mca plm_rsh_args "-p 17992"\\
+    -mca pml ob1 -mca btl ^openib\\
+    -mca btl_tcp_if_include 192.168.1.0/24 \\
+    -x LD_LIBRARY_PATH -x PATH -x BKSYN_DATA_ROOT\\
+    -v -np 2 -H 192.168.1.2:1,192.168.1.8:1\\
     python /usr/bin/bksynapse/pytorch/train.py\\
         --job-id d20db7d2-2f22-4f86-bbc7-8e93c5239132
 \end{lstlisting}
@@ -268,10 +261,19 @@ The training script also generates a TensorBoard log directory for further analy
 
 Similar to jobs, nodes are monitored using node daemons. A node daemon is deployed at each node, and is in fact a simple Python script that runs an infinite loop. Within the loop, the daemon i) queries CPU and GPU information, ii) updates the node status and iii) waits several seconds to the next loop. Constant information like GPU names, CPU frequency, etc... are collected on startup. Only status information, eg. RAM usage, GPU memory usage,... are constantly queried. This information is also polled and displayed by the BK.Synapse web app.
 
-Each status update also contains a timestamp, used by the API server as a health check mechanism. If a node's timestamp is "stale" (i.e too far away from the current timestamp), that node is declared inactive.
+Each status update also contains a timestamp, used by the API server as a health check mechanism. If a node's timestamp is "stale" (i.e too far away from the current time), that node is declared inactive.
 
 \subsection{Deployment Methods}
 BK.Synapse components are packaged as Docker images, allowing easy deployment and configuration via containers and tools such as Docker Compose, Kubernetes, etc...
+
+Nodes and the API server share several components, including the object model, authentication keys, etc,... Thus, a base Docker image (\lstinline{bksynapse/base}) is used to contain these shared resources. Other images (\lstinline{bksynapse/apis} and \lstinline{bksynapse/node}) are built on top of this image. Figure \ref{fig:docker_deploy} shows the Docker image dependencies.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=\textwidth]{docker_deploy.png}
+	\caption{Docker build dependencies for BK.Synapse's components}
+	\label{fig:docker_deploy}
+\end{figure}
 
 MPI requires a single port to be used for SSH connection across all machines. To avoid collision, we use the port 17992, and bind each container to the host machine's network stack.
 
@@ -311,7 +313,7 @@ Feature-wise, DIGITS is obviously more complete, with many utilities and extensi
 
 In a lot of ways, BK.Synapse attempts to be generic, and avoid making assumptions about the user's data or workflow. While this simplifies a lot of the development process and usage, it also prevents us from doing a lot of related data analysis. DIGITS features like data visualization or viewing labels are not available in BK.Synapse, since it's impossible to assume the user's data format. One may argue that these tasks are not what the framework set out to do, since it wouldn't make sense to run simple visualizations in parallel nodes. However, we concede that these types of tasks are not suitable for our framework, and have tried to provide utilities for users to perform these tasks more easily on their own (eg. history logs, snapshots, TensorBoard support,...).
 
-\section{Case Study: RetinaNet for Text Region Detection}  \label{section:retinanet}
+\section{Case Study: RetinaNet for Text Region\\ Detection} \label{section:retinanet}
 To fully evaluate BK.Synapse's effectiveness, we investigate its use in training RetinaNet, an existing CNN architecture for object detection.
 
 RetinaNet \cite{Lin_2017} is a network architecture proposed by Lin et al in 2017. RetinaNet is a one-stage detector in similar spirit to YOLO, however it aims to match two-stage detectors in terms of accuracy while maintaining fast inference speed.
@@ -370,5 +372,3 @@ where $\gamma$ is the focusing parameter. We can see that by adding the modulati
 Aside from Focal Loss, RetinaNet makes several minor adjustments to FPN. Different anchor scales are used at each layer for denser anchor coverage. IoU thresholds when assigning anchor labels are also relaxed, with a positive threshold of 0.5 and negative threshold of 0.4.
 
 RetinaNet was shown to achieve better results on the COCO dataset \cite{lin2014microsoft} than Faster-RCNN, while also being faster.
-
-When applied to the text detection problem, we take special note of the anchors. Unlike regular objects, which often has a ratio from 1:2 to 2:1, text blocks are usually wide. Therefore, the anchors used on COCO in \cite{Lin_2017} would not perform well on this problem. Instead, we add wider ratios of 1:8, 1:6 and 1:4, which better fit our data.

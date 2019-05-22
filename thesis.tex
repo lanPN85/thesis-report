@@ -1,4 +1,4 @@
-\documentclass[a4paper, 12pt, oneside]{report}
+\documentclass[a4paper, 13pt, oneside]{report}
 \usepackage[utf8]{inputenc}
 \usepackage{amsfonts}
 \usepackage[numbers,sort&compress]{natbib}
@@ -147,7 +147,7 @@
         {\fontsize{25}{30}\selectfont \textbf{THESIS}} \\ [0.25cm]
         {\fontsize{14}{17}\selectfont SUBMITTED IN PARTIAL FULFILLMENT \\
         OF THE REQUIREMENTS FOR THE DEGREE OF} \\ [0.5cm]
-        {\fontsize{25}{30}\selectfont \textbf{ENGINEER OF TECHNOLOGY}} \\ [0.5cm]
+        {\fontsize{25}{30}\selectfont \textbf{ENGINEER}} \\ [0.5cm]
         {\fontsize{14}{17}\selectfont IN} \\ [0.5cm]
         {\fontsize{22}{26}\selectfont INFORMATION TECHNOLOGY} \\ [0.5cm]
         {\fontsize{15}{15}\selectfont \textbf{BK.SYNAPSE:\\DISTRIBUTED NEURAL NETWORK\\ TRAINING FRAMEWORK\\ AND ITS APPLICATION IN OBJECT DETECTION}}
@@ -209,7 +209,7 @@
     \end{minipage}
     \begin{minipage}[t]{0.5\textwidth}
         \begin{center}
-        \textit{Hanoi, 24th May, 2019\\Author\\[1cm]Phan Ngoc Lan}
+        \textit{Hanoi, 24th May, 2019\\Author\\[2.5cm]Phan Ngoc Lan}
         \end{center}
     \end{minipage}
     \subsection*{Attestation of the Supervisor on the Fulfillment of the
@@ -220,7 +220,7 @@
     \end{minipage}
     \begin{minipage}[t]{0.5\textwidth}
         \begin{center}
-    \textit{Hanoi, 24th May, 2019\\Supervisor\\[1cm]Dr Dinh Viet Sang}
+    \textit{Hanoi, 24th May, 2019\\Supervisor\\[2.5cm]Dr. Dinh Viet Sang}
         \end{center}
     \end{minipage}
 \end{spacing}
@@ -237,10 +237,14 @@ Finally, I want to thank my family, friends and loved ones, who have given me al
 \pagebreak
 
 \chapter*{Abstract}
-Deep neural networks have seen many breakthroughs in the past several years, being applied to a wide variety of problems. Training these networks efficiently is a thoroughly-researched topic that plays an important role in their adoption. Major advancements have been made, including the use of multiple devices to further decrease training time. However, training at scale usually means adding on multiple layers of complex deployment logic and parallelization concerns, distracting researchers from the core of their algorithms. Therefore, this thesis presents a framework called BK.Synapse that can facilitate distributed training while maintaining clarity, simplicity, and user-friendliness. The design is modular, allowing flexible and easy deployment on a variety of hardware specifications. We benchmark BK.Synapse in a case study: training a neural network for an object detection problem. Our results show a good amount of speedup over conventional training, with very few modifications to the existing codebase.
+Deep neural networks have seen many breakthroughs in the past several years, being applied to a wide variety of problems. Training these networks efficiently is a thoroughly-researched topic that plays an important role in their adoption. Major advancements have been made, including the use of multiple devices to further decrease training time. However, training at scale usually means adding on multiple layers of complex deployment logic and parallelization concerns, distracting researchers from the core of their algorithms. 
+
+Therefore, this thesis presents a framework called BK.Synapse that can facilitate distributed training while maintaining clarity, simplicity, and user-friendliness. The design is modular, allowing flexible and easy deployment on a variety of hardware specifications. We benchmark BK.Synapse in a case study: training a neural network for an object detection problem. Our results show a good amount of speedup over conventional training, with very few modifications to the existing codebase. The resulting model also performs relatively well upon testing.
 
 \chapter*{Tóm tắt}
-Mạng neuron đã có rất nhiều đột phá mạnh mẽ trong những năm gần đây, và đã được áp dụng vào rất nhiều bài toán thực tế. Huấn luyện các mạng này một cách hiệu quả là một chủ đề rất được quan tâm, đóng vai trò quan trọng trong việc thử nghiệm cũng như ứng dụng. Nhiều kĩ thuật huấn luyện đã được đề xuất, trong đó bao gồm việc sử dụng nhiều máy tính để tăng hiệu suất. Tuy nhiên, huấn luyện mạng trên quy mô lớn thường kéo theo nhiều tầng triển khai phức tạp và các vấn đề khác liên quan đến các tiến trình phân tán. Từ đó, đồ án đề xuất công cụ BK.Synapse, nhằm cho phép huấn luyện mạng neuron phân tán một cách rõ ràng, đơn giản và thân thiện với người dùng. Công cụ có thể được triển khai 1 cách linh hoạt trên nhiều cấu hình phần cứng. BK.Synapse được kiểm nghiệm thông qua bài toán huấn luyện mạng neuron cho một bài toán phát hiện vật thể. Các kết quả cho thấy tỉ lệ tăng tốc khá tốt so với huấn luyện thông thường, trong khi có chỉnh sửa khá ít so với mã nguồn gốc.
+Mạng neuron đã có rất nhiều đột phá mạnh mẽ trong những năm gần đây, và đã được áp dụng vào rất nhiều bài toán thực tế. Huấn luyện các mạng này một cách hiệu quả là một chủ đề rất được quan tâm, đóng vai trò quan trọng trong việc thử nghiệm cũng như ứng dụng. Nhiều kĩ thuật huấn luyện đã được đề xuất, trong đó bao gồm việc sử dụng nhiều máy tính để tăng hiệu suất. Tuy nhiên, huấn luyện mạng trên quy mô lớn thường kéo theo nhiều tầng triển khai phức tạp và các vấn đề khác liên quan đến các tiến trình phân tán. 
+
+Từ đó, đồ án đề xuất công cụ BK.Synapse, nhằm cho phép huấn luyện mạng neuron phân tán một cách rõ ràng, đơn giản và thân thiện với người dùng. Công cụ có thể được triển khai 1 cách linh hoạt trên nhiều cấu hình phần cứng. BK.Synapse được kiểm nghiệm thông qua bài toán huấn luyện mạng neuron cho một bài toán phát hiện vật thể. Các kết quả cho thấy tỉ lệ tăng tốc khá tốt so với huấn luyện thông thường, trong khi có chỉnh sửa khá ít so với mã nguồn gốc. Đồng thời, mô hình mạng thu được cũng đạt kết quả khá tốt trên dữ liệu thử nghiệm.
 
 \chapter*{Summary}
 The thesis is divided into 5 chapters:

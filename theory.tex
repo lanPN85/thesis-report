@@ -54,12 +54,12 @@ For large datasets, a straightforward split of 3 datasets is often made with a r
 
 When splitting datasets, it can sometimes be important to maintain the distribution of classes or other feature properties in the original data. This technique is called stratified sampling, and is especially critical for datasets that are unevenly distributed.
 
-Evaluating models on different datasets can reveal various deficiencies. A model \textit{underfits} when it achieves low metric scores on the training set, implying that the model cannot fit the problem's distribution. Using more powerful/complex models typically solves overfitting. On the other hand, a model \textit{overfits} when it achieves high metric scores on the training set, but low scores on the validation set. This means the model has learned patterns that only exists in the training data, not the desired problem's features. Regularization and data augmentation techniques are used in order to alleviate overfitting.
+Evaluating models on different datasets can reveal various deficiencies. A model \textit{underfits} when it achieves low metric scores on the training set, implying that the model cannot fit the problem's distribution. Using more powerful/complex models typically solves underfitting. On the other hand, a model \textit{overfits} when it achieves high metric scores on the training set, but low scores on the validation set. This means the model has learned patterns that only exists in the training data, not the desired problem's features. Regularization and data augmentation techniques are used in order to alleviate overfitting.
 
 \subsection{Evaluation metrics}
 Different metrics are used to evaluate machine learning models, depending on the problem domain. Most often, metrics focus on how accurate the model is in performing the given task, however can also include other requirements like efficiency, robustness, scalability or interpretability.
 
-For classification models, the most common metric is accuracy, which measures the ratio of correct classifications made by the model. However, this metric can be noisy on unbalanced datasets. Specifically, if $90\%$ of the dataset belongs to class A, then a classifier that always predicts class A would have $90\%$ accuracy (!). Therefore, 3 other metrics are usually added to evaluation: precision, recall, and F1 score.
+For classification models, the most common metric is accuracy, which measures the ratio of correct classifications made by the model. However, this metric can be noisy on unbalanced datasets. Specifically, if $90\%$ of the dataset belongs to class A, then a classifier that always predicts class A would have $90\%$ accuracy. Therefore, 3 other metrics are usually added to evaluation: precision, recall, and F1 score.
 
 Precision measures the ratio between true positives (number of accurate predictions made by the model for one class) to all predictions in that class. Recall measures the ratio between true positives for a class and all examples labeled as that class. Finally, F1 score is the harmonic mean between precision and recall. Calculating these metrics is often done using a confusion matrix (Figure \ref{fig:confusion-mat}).
 
@@ -67,7 +67,7 @@ Precision measures the ratio between true positives (number of accurate predicti
 	\centering
 	\includegraphics[width=0.5\textwidth]{confusion-mat.png}
 	\caption{
-		A confusion matrix\\(TP: true positive, FP: false positive, FN: false negative, TN: true negative)\protect\footnotemark}
+		A confusion matrix (TP: true positive, FP: false positive, FN: false negative, TN: true negative)\protect\footnotemark}
 	\label{fig:confusion-mat}
 \end{figure}
 \footnotetext{https://towardsdatascience.com/understanding-confusion-matrix-a9ad42dcfd62}
@@ -333,11 +333,19 @@ The use of computational graphs for deep learning became prevalent in part due t
 
 By seperating graph definition and the actual runtime, these early frameworks can apply several optimizations during graph "compilation". This also helps improve performance, since definition is often done in the Python language, while the runtime can be written in lower-level, more performant languages (eg. C, C++,...). Finally, since the graph is finalized after compilation and is essentially data, they are portable and serializable, which helps deployment at scale.
 
-On the other hand, compiled graphs are often criticized for their steep learning curve and being difficult to debug. Since the framework runtime completely takes over execution and even modifies the graph during optimization, it's often difficult to keep track of results and errors. This motivated the creation of dynamic graph frameworks, most notably PyTorch (2017) \cite{paszke2017pytorch} and Chainer (2015) \cite{tokui2015chainer}. These frameworks simply constructs graphs \emph{on the go}, alongside the actual calculations. This has the benefit of being easier to grasp, and operations can be transparently observed instead of obscured during execution. However, they suffer from fewer optimizations and lower portablility.
+On the other hand, compiled graphs are often criticized for their steep learning curve and being difficult to debug. Since the framework runtime completely takes over execution and even modifies the graph during optimization, it's often difficult to keep track of results and errors. This motivated the creation of dynamic graph frameworks, most notably PyTorch (2017) \cite{paszke2017pytorch} and Chainer (2015) \cite{tokui2015chainer}. These frameworks simply construct graphs \emph{on the go}, alongside the actual calculations. This has the benefit of being easier to grasp, and operations can be transparently observed instead of obscured during execution. However, they suffer from fewer optimizations and lower portablility.
 
 Despite their differences, static and dynamic graph frameworks have shown a tendency to overlap in recent years. Namely, TensorFlow 2.0 introduced Eager Execution, which attempts to create a smoother, dynamic experimental workflow. In contrast, PyTorch 1.0 added Script Mode in order to support compiled graphs, a feature that used to be delegated to conversion to Caffe 2. In the end, we can expect these libraries to provide both an intuitive development experience and optimized for production.
 
 On top of these frameworks, multiple tools and interfaces have been proposed in recent years to help simplifying their workflow. High-level libraries like Keras \cite{chollet2015keras} allows intermediate users to interact more easily with TensorFlow, Theano and CNTK, while tools such as NVIDIA DIGITS create a streamlined workflow for multiple frameworks.
+
+\begin{figure}[htp]
+	\centering
+	\includegraphics[width=0.7\textwidth,frame]{digits.png}
+	\caption{An example of DIGITS' user interface}
+	\label{fig:digits}
+\end{figure}
+\FloatBarrier
 
 \section{Training Neural Networks in Parallel}
 A major drawback for deep neural networks is the computational complexity of training them. LeNet (1998) \cite{lecun1998lenet}, for example, has over 100,000 parameters, while ResNet-50 (2016) \cite{he2016resnet} has 25 million. Optimizing these parameters over many iterations is very computationally intensive, and training even a small network such as LeNet could take several days on standard \glspl{cpu}.
