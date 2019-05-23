@@ -48,7 +48,7 @@ Our first set of experiments seek to benchmark BK.Synapse's performance when tra
 \begin{tabu} to 0.8\textwidth {|X[c]|X[c]|}
     \hline
     \textbf{Parameter} & \textbf{Value} \\ \hline
-    Network backbone & ResNet-50 \\ \hline
+    Network backbone & ResNet-50 \cite{he2016resnet} \\ \hline
     Learning rate & 0.0001 \\ \hline
     Batch size & 2 \\ \hline
     Gradient norm & 0.1 \\ \hline
@@ -88,9 +88,9 @@ As the 2CPUs/2GPUs setups work with larger batches, we see an increase in the av
 \FloatBarrier
 
 \section{Model Performance}
-In our final experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the \gls{icdar} Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, while the number of epochs is set to 50. The networks are trained on both N1 and N2 with GPU acceleration.
+In the next experiment, we train the same network to convergence using BK.Synapse, and evaluate the final model's performance on the \gls{icdar} Challenge task. We maintain the same parameters as in Table \ref{tab:train_params}, while the number of epochs is set to 50. The networks are trained on both N1 and N2 with GPU acceleration.
 
-We first sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. \gls{ap} at IoU=0.5 and IoU=0.75 are used as our evaluation metrics. The final training results are shown in Table \ref{tab:ap}.
+We sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0. \gls{ap} at IoU=0.5 and IoU=0.75 are used as our evaluation metrics. The training results are shown in Table \ref{tab:ap}.
 
 \begin{table}[htp]
     \centering
@@ -98,7 +98,7 @@ We first sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0
     \begin{tabu} to \textwidth {|c|X[c]|X[c]|X[c]|X[c]|}
         \hline
          & \multicolumn{2}{c|}{\textbf{AP@0.50}} & \multicolumn{2}{c|}{\textbf{AP@0.75}} \\ \cline{2-5}
-         & \textbf{Train set} & \textbf{Val set} & \textbf{Train set} & \textbf{Val set} \\ \hline
+         & \textbf{Training set} & \textbf{Validation set} & \textbf{Training set} & \textbf{Validation set} \\ \hline
         $\gamma = 0.5$ & 0.6286 & 0.5681 & 0.3460 & 0.2944\\ \hline
         $\gamma = 1.0$ & 0.6924 & \textbf{0.6327} & 0.5609 & \textbf{0.4628} \\ \hline
         $\gamma = 2.0$ & 0.7032 & 0.6250 & 0.5548 & 0.4125 \\ \hline
@@ -107,10 +107,10 @@ We first sample 3 different values of $\gamma$ for Focal Loss: 0.5, 1.0, and 2.0
 \end{table}
 \FloatBarrier
 
-It is clear that the model performs best on the validation set when $\gamma$ is set to 1.0. However, this version still performs quite poorly at only 63\% AP on our validation data. Thus, we introduce several modifications:
+It is clear that the model performs best on the validation set when $\gamma$ is set to 1.0. However, this version still performs quite poorly at only 63\% AP on our validation data. Thus, for our final experiment, we introduce several modifications:
 \begin{itemize}
     \item Extra-dense anchors are introduced on every levels. Specifically, we set the ratio list to (0.075, 0.125, 0.25, 0.5, 1, 1.5), and use scales of (0.1, 0.25, 0.4, 0.55, 0.7, 1, 1.2, 1.6, 2). This accounts for the high variance in box size and ratio in the dataset, especially very wide and very small boxes.
-    \item We use the larger ResNet-101 architecture in place of ResNet-50.
+    \item We use the larger ResNet-101 architecture as backbone in place of ResNet-50.
     \item The backbone network is pretrained on ImageNet before being trained on our dataset.
 \end{itemize}
 
@@ -122,7 +122,7 @@ We denote this improved model RetinaNet-101-DA, and the original model RetinaNet
     \begin{tabu} to \textwidth {|l|X[c]|X[c]|X[c]|X[c]|}
         \hline
          & \multicolumn{2}{c|}{\textbf{AP@0.50}} & \multicolumn{2}{c|}{\textbf{AP@0.75}} \\ \cline{2-5}
-         & \textbf{Train set} & \textbf{Val set} & \textbf{Train set} & \textbf{Val set} \\ \hline
+         & \textbf{Training set} & \textbf{Validation set} & \textbf{Training set} & \textbf{Validation set} \\ \hline
         RetinaNet-50 & 0.6924 & 0.6327 & 0.5609 & 0.4628 \\ \hline
         RetinaNet-101-DA & 0.9177 & \textbf{0.8075} & 0.6252 & \textbf{0.5163}\\ \hline
     \end{tabu}

@@ -113,12 +113,11 @@ In order for neural networks to represent complex, non-linear models, the activa
 \begin{algorithm}[bth]
 	\SetAlgoLined
 	\caption{Forward pass} \label{alg:fwd_pass}
-	\Input{$x$: a vector of input features\\
-		$L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$: the network's layers
+	\Input{Vector of input features $x$\\
+		Network layers $L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$
 		}
-	\Output {
-		$h^{(m)}$: the network's prediction\\
-		$Z = (z^{(1)},...,z^{(m)})$: the output at each layer
+	\Output {Predictions $h^{(m)}$\\
+		Outputs at each layer $Z = (z^{(1)},...,z^{(m)})$
 	}
 
 	$h^{(0)} \gets x$ \\
@@ -146,12 +145,11 @@ In order to update the network, we need to know the values with which to update 
 \begin{algorithm}[bth]
 	\SetAlgoLined
 	\caption{Backpropagation} \label{alg:backprop}
-	\Input{$x$: a vector of input features\\
-		$y$: the correct example label\\
-		$L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$: the network's layers
+	\Input{Vector of input features $x$\\
+		Ground truth labels $y$\\
+		Network layers $L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$
 		}
-	\Output {
-		$\Delta = (\delta^{(1)},...,\delta^{(m)})$: the gradients at each layer
+	\Output {Gradients at each layer $\Delta = (\delta^{(1)},...,\delta^{(m)})$
 	}
 
 	$h, Z \gets forwardPass(x)$ \\
@@ -171,14 +169,12 @@ With the gradient at each layer, we can update the network by "moving" in the op
 \begin{algorithm}[bth]
 	\SetAlgoLined
 	\caption{Gradient Descent} \label{alg:grad_desc}
-	\Input{$x$: a vector of input features\\
-		$y$: the correct example label\\
-		$L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$: the network's layers\\
-		$\gamma$: the learning rate
+	\Input{Vector of input features $x$\\
+		Ground truth labels $y$\\
+		Network layers $L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$\\
+		Learning rate $\gamma$
 		}
-	\Output {
-		The updated network
-	}
+	\Output {The updated network}
 	
 	\Repeat{convergence} {
 		$\Delta \gets backprop(x, y, L)$ \\
