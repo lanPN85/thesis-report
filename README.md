@@ -1,2 +1,7 @@
 # Thesis Report
-[PDF](thesis.pdf)
+Main file at `thesis.tex`
+
+## Build
+```
+make
+```
