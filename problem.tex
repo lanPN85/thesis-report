@@ -9,6 +9,7 @@ Training neural networks is a very computationally intensive task, which can tak
 At the same time, distributed environments make it difficult to validate and test new networks. A preferable workflow would be testing a network locally, and deploying to multiple nodes later. As such, minimizing the amount of work required to port between these workflows is also a priority. This thesis aims to design and implement a system that satisfies these criterias.
 
 \section{Object Detection}
+\subsection{Overview}
 \gls{obj_det} is a computer vision problem that aims to detect instances of semantic objects of a certain class (such as humans, buildings, cars, etc...) in digital images and videos. Formally, object detection is defined as: given an input image, produce a correct set of bounding boxes and corresponding labels for each semantic object within the image. An example is shown in Figure \ref{fig:obj_example}.
 
 \begin{figure}[htp]

@@ -23,26 +23,6 @@ Unsupervised algorithms, on the other hand, make use of unlabeled data, where on
 
 Finally, reinforcement learning algorithms are modeled as agents within an environment. The environment provides feedback to the agent's actions, which are interpreted as reward values. The goal in reinforcement learning is to learn a policy for the agent to perform which optimizes its reward, and ultimately achieve its task. Notable applications of reinforcement learning include self-driving cars and game-playing AIs (eg. Google's AlphaGo \cite{silver2016alphago}).
 
-% \subsubsection{Feature extraction}
-% A key phase in training any machine learning model is representing the training examples in a format suitable for the model. This process is called feature extraction.
-
-% Feature extraction heavily relies on both the problem domain and the algorithm being used. On one hand, an example should be represented such that there's sufficient information for models to learn, while at the same time avoiding noisy features which can cause false correlation. As an example, to train a model predicting a person's height, their weight and gender could be considered good features, while their marital status would be a bad feature. On the other hand, each \gls{ml} algorithm has specific requirements and advantages in terms of input data. Naive Bayes and Decision Tree classifiers, for example, only accepts discrete values as input, while SVMs and Neural Networks only work with continuous values.
-
-% Several common techniques are utilized in feature extraction:
-
-% \begin{itemize}
-% 	\item Normalization/Scaling: To negate the effect of uneven value ranges between features, these values are often normalized to a range between 0 to 1 (or -1 to 1), with regards to the mean value for that feature.
-% 	\item Discretization: To allow discrete models to work with continuous features, discretization techniques are often applied. A common method is to split the value range into small sub-ranges.
-% 	\item Embedding: Conversely, discrete features are often transformed into continuous vectors, dubbed embedding vectors. Intuitively, embedding vectors seek to approximate the relationships between their respective discrete values (eg. relations between different words). This is often achieved using some form of unsupervised learning. The most widely used form of embedding vectors is Word2Vec \cite{mikolov2013distributed} for word representation (Figure \ref{fig:word2vec}).
-% \end{itemize}
-
-% \begin{figure}[htp]
-% 	\centering
-% 	\includegraphics[width=0.9\textwidth]{word2vec.png}
-% 	\caption{Visualization of word2vec embeddings}
-% 	\label{fig:word2vec}
-% \end{figure}
-
 \subsection{Partitioning datasets}
 Evaluating the effectiveness of \gls{ml} models differ from other algorithms and statistical models. In this section, we focus on evaluating supervised models.
 
@@ -50,7 +30,7 @@ Supervised \gls{ml} models are trained on a training dataset, however the goal i
 
 Additionally, many models have hyperparameters that require selection, often by experiment. This selection should also be done on unseen data, yet it's unfair to use the test set as this simply picks out whichever parameter set that happens to fit the test distribution. Instead, a seperate validation dataset is held out for this purpose.
 
-For large datasets, a straightforward split of 3 datasets is often made with a ratio of around 70/15/15 for training, validation and testing. In smaller datasets, an alternate approach is $k$-fold cross validation, where the entire dataset is split into $k$ equal parts (folds). Training is then performed $k$ times, each using one fold as the validation and test set, and the rest as the training set. Evaluation results are then averaged among all runs.
+For large datasets, a straightforward split of 2 datasets is often made with a ratio of 80/20 for training and testing. In smaller datasets, an alternate approach is $k$-fold cross validation, where the entire dataset is split into $k$ equal parts (folds). Training is then performed $k$ times, each using one fold as the test set, and the rest as the training set. Evaluation results are then averaged among all runs.
 
 When splitting datasets, it can sometimes be important to maintain the distribution of classes or other feature properties in the original data. This technique is called stratified sampling, and is especially critical for datasets that are unevenly distributed.
 
@@ -90,20 +70,11 @@ A biological neural network is composed of a group or groups of chemically conne
 
 Artificial neural networks employ a much more simplified approximation of this process, where neurons are replaced with simple computational units that perform transformations on input data. Despite each neuron's simplicity, the amount of neurons along with their connections allow neural networks to represent incredibly complex functions.
 
-The first neural network was proposed in 1958 by Frank Rosenblatt \cite{rosenblatt1958perceptron}, called the Perceptron. A perceptron is basically a single neuron, which consists of a set of weights $W = (w_0,..., w_n)$ and an activation function $f(x)$ (in this case the unit step function). With a continuous vector $X = (1, x_1,..., x_n)$ as input, the output of a perceptron is represented by the function:
+The first neural network was proposed in 1958 by Frank Rosenblatt \cite{rosenblatt1958perceptron}, called the Perceptron. A perceptron is basically a single neuron, which consists of a set of weights $w$, a \textit{bias} weight $b$ and an activation function $g(x)$ (in this case the unit step function). Given a continuous vector $x$ as input, the output of a perceptron is represented by the function:
 
 \begin{equation}
-	y = f(W \cdot X)	
+	f(x; w, b) = g(w^T x + b)
 \end{equation}
-
-% \begin{figure}[htp]
-% 	\centering
-% 	\includegraphics[width=0.5\textwidth]{perceptron.png}
-% 	\caption{Diagram for a single layer binary classification perceptron\protect\footnotemark}
-% 	\label{fig:perceptron}
-% \end{figure}
-% \footnotetext{http://ataspinar.com/2016/12/22/the-perceptron/}
-% \FloatBarrier
 
 The idea of the perceptron eventually expanded into multi layer perceptrons, or better known as artificial neural networks. Architecturally, they differ in that there are multiple "neurons" (or computational units) as opposed to one, and they are divided into layers (Figure \ref{fig:nnet}).
 
@@ -117,17 +88,17 @@ Three types of layer are present in a neural net: the input layer, hidden layers
 \end{figure}
 \footnotetext{https://technology.condenast.com/story/a-neural-network-primer}
 
-In this classic architecture, each neuron in layer $i$ is connected to every neuron in layer $i + 1$. As such, these networks are also referred to as fully connected networks. 
+In this architecture, each neuron in layer $j$ is connected to every neuron in layer $j + 1$. As such, these networks are also referred to as fully connected networks. 
 
 Neural networks implement 2 primary procedures: forward pass and backpropagation.
 
 \subsubsection{Forward pass}
-The forward pass is used to get output results from a neural network. Starting with an input example $X = (x_1,...,x_n)$ at the input layer, we iterate through subsequent layers one by one, calculating the output at each pass (Algorithm \ref{alg:fwd_pass}). The output for layer $i$ is defined by:
+The forward pass is used to get output results from a neural network. Starting with an input example $x$ at the input layer, we iterate through subsequent layers one by one, calculating the output at each pass (Algorithm \ref{alg:fwd_pass}). The output for layer $j$ is defined in \cite{Goodfellow-et-al-2016} as:
 
 \begin{equation}
-	y_i = f_i(y_{i-1} \cdot W_i)	
+	h^{(j)} = g^{(j)}(W^{(j)T} \cdot h^{(j-1)} + b^{(j)})
 \end{equation}
-where $f_i$ is the layer's activation function, and $W_i$ is the layer's weight matrix. The size of $W_i$ corresponds to the number of neurons at layers $i$ and $i - 1$.
+where $g^{(j)}$ is the $j^{th}$ layer's activation function, $W^{(j)}$ is the weight matrix, $b^{(j)}$ is the bias weight, and $h^{(0)} = x$. The size of $W^{(j)}$ corresponds to the number of neurons at layers $j$ and $j - 1$.
 
 In order for neural networks to represent complex, non-linear models, the activation function at each layer is often non-linear. The most widely used functions are $sigmoid$ and $tanh$ (Figure \ref{fig:sigmoid_tanh}).
 
@@ -142,52 +113,52 @@ In order for neural networks to represent complex, non-linear models, the activa
 \begin{algorithm}[bth]
 	\SetAlgoLined
 	\caption{Forward pass} \label{alg:fwd_pass}
-	\Input{$X = (x_1,...,x_k)$: a set of input features\\
-		$L = ((W_1, f_1),...,(W_m, f_m))$: the network's layers
+	\Input{$x$: a vector of input features\\
+		$L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$: the network's layers
 		}
 	\Output {
-		$y_m$: the network's prediction
-		$Z = (z_1,...,z_m)$: the output at each layer
+		$h^{(m)}$: the network's prediction\\
+		$Z = (z^{(1)},...,z^{(m)})$: the output at each layer
 	}
 
-	$y_0 \gets X$ \\
-	\For{$i \in (1...m)$} {
-		$z_i \gets y_{i-1} \cdot W_i$ \\
-		$y_i \gets f_i(z_i)$
+	$h^{(0)} \gets x$ \\
+	\For{$j \in (1...m)$} {
+		$z^{(j)} \gets W^{(j)T} \cdot h^{(j-1)} + b^{(j)}$ \\
+		$h^{(j)} \gets g^{(j)}(z^{(j)})$
 	}
 
-	\Return $y_m$, $Z$
+	\Return $h^{(m)}$, $Z$
 \end{algorithm}
 
 \subsubsection{Backpropagation}
-Neural networks learn from examples using backpropagation. As the name implies, backpropagation works by tracing back from the output layer. Given a training example $X = (x_1,...,x_n)$ and the label $Y$, we first get the network's prediction $y$ using the forward pass. The general idea is to "propagate" the error signal between $y$ and $Y$ to the whole network, or in other words, update the network to decrease prediction error.
+Neural networks learn from examples using backpropagation. As the name implies, backpropagation works by tracing back from the output layer. Given a training example $x$ and the label $y$, we first get the network's prediction $h$ using the forward pass. The general idea is to "propagate" the error signal between $h$ and $y$ to the whole network, or in other words, update the network to decrease prediction error.
 
 The error signal is calculated using a loss function, measuring the discrepancy between predictions and labels. Typically, regression problems employ Mean Squared Error (Equation \ref{eq:mse}), while classification problems use the Cross Entropy loss (Equation \ref{eq:cross_enp}). Other notable functions include Triplet Loss as seen with FaceNet \cite{schroff2015facenet}, and Adversarial Loss used by Generative Adversarial Networks \cite{goodfellow2014generative}.
 
 \begin{align}
-	& MSE = \frac{1}{n} \sum_{i=1}^n (y_i - Y-i)^2 \label{eq:mse}\\
-	& H = - \frac{1}{n} \sum_{i=1}^n (Y_ilog(y_i) + (1-Y_i)log(1-y_i)) \label{eq:cross_enp}
+	& MSE = \frac{1}{n} \sum_{i=1}^n (h_i - y_i)^2 \label{eq:mse}\\
+	& CE = - \frac{1}{n} \sum_{i=1}^n (y_ilog(h_i) + (1-y_i)log(1-h_i)) \label{eq:cross_enp}
 \end{align}
 where $n$ is the total number of examples.
 
-In order to update the network, we need to know the values with which to update each neuron. Backpropagation finds these values for each layer $i$ using the gradient w.r.t layer $i + 1$. We start by calculating the gradient at the output layer $m$ w.r.t the loss function. Then, using the derivative chain rule, calculate the gradient at each previous layer. This is described in detail in Algorithm \ref{alg:backprop}.
+In order to update the network, we need to know the values with which to update each neuron. Backpropagation finds these values for each layer $j$ using the gradient w.r.t layer $j + 1$. We start by calculating the gradient at the output layer $m$ w.r.t the loss function. Then, using the derivative chain rule, calculate the gradient at each previous layer. This is described in detail in Algorithm \ref{alg:backprop}.
 
 \begin{algorithm}[bth]
 	\SetAlgoLined
 	\caption{Backpropagation} \label{alg:backprop}
-	\Input{$X = (x_1,...,x_k)$: a set of input features\\
-		$Y$: the correct example label\\
-		$L = ((W_1, f_1),...,(W_m, f_m))$: the network's layers
+	\Input{$x$: a vector of input features\\
+		$y$: the correct example label\\
+		$L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$: the network's layers
 		}
 	\Output {
-		$\Delta = (\delta_1,...,\delta_m)$: the gradient at each layer
+		$\Delta = (\delta^{(1)},...,\delta^{(m)})$: the gradients at each layer
 	}
 
-	$y, Z \gets forwardPass(X)$ \\
-	$C \gets loss(y, Y)$ \\
-	$\delta_m = \frac{\delta C}{\delta w_m} \odot f_m'(z_m)$ \\
-	\For{$i \in (m-1...1)$} {
-		$\delta_i \gets (w_{i+1}^T \cdot \delta_{i+1}) \odot f_i'(z_i)$
+	$h, Z \gets forwardPass(x)$ \\
+	$c \gets loss(h, y)$ \\
+	$\delta^{(m)} = \frac{\delta c}{\delta W^{(m)}} \odot g^{(m)'}(z^{(m)})$ \\
+	\For{$j \in (m-1...1)$} {
+		$\delta^{(j)} \gets (W^{(j+1)T} \cdot \delta^{(j+1)}) \odot g^{(j)'}(z^{(j)})$
 	}
 
 	\Return $\Delta$
@@ -200,9 +171,9 @@ With the gradient at each layer, we can update the network by "moving" in the op
 \begin{algorithm}[bth]
 	\SetAlgoLined
 	\caption{Gradient Descent} \label{alg:grad_desc}
-	\Input{$X = (x_1,...,x_k)$: a set of input features\\
-		$Y$: the correct example label\\
-		$L = ((W_1, f_1),...,(W_m, f_m))$: the network's layers\\
+	\Input{$x$: a vector of input features\\
+		$y$: the correct example label\\
+		$L = ((W^{(1)}, b^{(1)}, g^{(1)}),...,(W^{(m)}, b^{(m)}, g^{(m)}))$: the network's layers\\
 		$\gamma$: the learning rate
 		}
 	\Output {
@@ -210,13 +181,15 @@ With the gradient at each layer, we can update the network by "moving" in the op
 	}
 	
 	\Repeat{convergence} {
-		$\Delta \gets backprop(X, Y)$ \\
-		$W \gets W - \gamma \Delta$
+		$\Delta \gets backprop(x, y, L)$ \\
+		\For{$j \in (1...m)$} {
+			$W^{(j)} \gets W^{(j)} - \gamma \delta^{(j)}$
+		}
 	}
 \end{algorithm}
 \FloatBarrier
 
-A learning rate is specified to adjust the step for each gradient descent iteration. A high learning rate means the network is updated with large strides, which makes it susceptible to divergence at later steps. A low learning rate is more guaranteed to converge, but takes more iterations. Conventionally, the learning rate is set in the range of $10^{-2}$ to $10^{-4}$.
+A learning rate is specified to adjust the step for each gradient descent iteration. A high learning rate means the network is updated with large strides, which makes it susceptible to divergence at later steps. A low learning rate is more guaranteed to converge, but takes more iterations. Conventionally, the learning rate is set in the range of $10^{-2}$ to $10^{-5}$.
 
 \begin{figure}[htp]
 	\centering
@@ -227,7 +200,7 @@ A learning rate is specified to adjust the step for each gradient descent iterat
 \FloatBarrier
 \footnotetext{https://hackernoon.com/gradient-descent-aynk-7cbe95a778da}
 
-Gradient descent accounts for the gradient over the entire dataset. For very large datasets, this is not feasible. Minibatch gradient descent is a modified version that only updates the model on several examples at a time (one batch). This version runs in multiple "epochs", each of which goes through all batches in the dataset. Stochastic gradient descent (SGD) is a version with a batch size of 1. Stochastic and minibatch gradient descent usually requires lower learning rates and more iterations, but still consistently converges with lower memory footprints.
+Gradient descent accounts for the gradient over the entire dataset. For very large datasets, however, this is not feasible. Minibatch gradient descent is a modified version that only updates the model on several examples at a time (one batch). This version runs in multiple "epochs", each of which goes through all batches (iterations) in the dataset. Stochastic gradient descent (SGD) is a variation with a batch size of 1. Stochastic and minibatch gradient descent usually requires lower learning rates and more iterations, but still consistently converges with lower memory footprints.
 
 % \begin{figure}[htp]
 % 	\centering
@@ -294,7 +267,7 @@ ConvNets have been successfully applied to many computer vision problems, the mo
 
 Two-stage detection splits the problem into two subtasks: finding \glspl{roi} where there may be objects, then locating and classifying the single object within each region. The tasks are split out to handle the varying number of objects within each image. Faster R-CNN \cite{ren2015faster} is a good example of a two-stage detector. The input image is put through convolution layers to produce the initial feature map. Then, a small ConvNet is used to generate the \glspl{roi}, called the Region Proposal Network. Because \glspl{roi} can have arbitrary sizes, they are reshaped using an \gls{roi} Pooling layer. \gls{roi} pooling works similarly to max pooling, but instead of the whole feature map, it takes the feature map segment corresponding to each \gls{roi}, divides it into $m \times n$ section and performs max pooling on those sections to produce the $m \times n$ output. In essence, \gls{roi} pooling squashes \glspl{roi} of different sizes into uniform representations of their strongest signals. Afterwards, each \gls{roi} map is put through a classifier feedforward network to generate the class label. The loss function for the network is the sum of the classification loss for each correctly predicted region, and the regression loss for each predicted box.
 
-In contrast, one-stage detectors model the problem as classifying each subregion on the image as either one of the pre-defined class (foreground) or no class at all (background). YOLO \cite{redmon2016you} and SSD \cite{liu2016ssd} are both good examples of one-stage detectors. Both architectures define multiple overlapping boxes on the feature map region. The network then learns how to correctly classify each of these boxes into the correct class, as well as the offset to the default position. Overlapping boxes of the same class are combined into a single bounding box using a procedure called Non-Maximum Suppression.
+In contrast, one-stage detectors model the problem as classifying each subregion on the image as either one of the pre-defined class (foreground) or no class at all (background). YOLO \cite{redmon2016you} and SSD \cite{liu2016ssd} are both good examples of one-stage detectors. Both architectures define multiple boxes on the feature map region, which the network then learns to correctly classify, as well as the offsets to exactly fit ground truth boxes. Overlapping boxes of the same class are combined into a single bounding box using a procedure called Non-Maximum Suppression.
 
 \gls{nms} is a procedure that takes a series of overlapping bouding boxes as input, and outputs the pruned list of non-overlapping boxes. \gls{nms} achieves this by prioritizing boxes with the lowest bottom-right corner, and removing any overlapping box over a predefined threshold.
 
@@ -387,4 +360,4 @@ While \glspl{gpu} have greatly improved \gls{dnn} training speed, modern network
 
 Support for multi-node and multi-GPU training are available in most DL frameworks, most notably TensorFlow (which utilizes Google's gRPC protocol) and PyTorch (which support several communication backends, including the popular MPI \cite{Forum:1994:MMI:898758} interface). Both implement parallelization using the data parallel approach (with Allreduce), as this is the most general solution that can apply to most neural networks.
 
-In 2018, researchers at Uber released Horovod \cite{DBLP:journals/corr/abs-1802-05799}, a library providing a unified interface for parallel training with TensorFlow, Keras, PyTorch and MXNet. Horovod utilizes MPI for communication, and implements Baidu's Ring Allreduce. Horovod's notable feature is that it requires minimal changes to existing single-node codebases.
+In 2018, researchers at Uber released Horovod \cite{DBLP:journals/corr/abs-1802-05799}, a library providing a unified interface for parallel training with TensorFlow, Keras, PyTorch and MXNet. Horovod utilizes MPI for communication, and implements Baidu's Ring Allreduce. Horovod's notable feature is that it requires minimal changes to existing single-node codebases. However, users are still expected to deploy and manage compute nodes themselves.

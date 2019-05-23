@@ -22,7 +22,6 @@ Due to these limitations, we aim to design BK.Synapse as a distributed training 
     \multicolumn{1}{|c|}{\textbf{Feature}} & \textbf{DIGITS} & \textbf{BK.Synapse} \\ \hline
     Single-node multi-GPU support & \cmark & \cmark \\ \hline
     Job monitoring \& management & \cmark & \cmark \\ \hline
-    Open source & \cmark & \cmark \\ \hline
     Multiple node support & \xmark & \cmark \\ \hline
     Arbitrary models and datasets & \xmark & \cmark \\ \hline
     Data visualization & \cmark & \xmark \\ \hline
@@ -35,7 +34,7 @@ Due to these limitations, we aim to design BK.Synapse as a distributed training 
 
 Aside from DIGITS, we also take note of other similar tools in the domain, namely DeepCognition\footnote{\href{https://deepcognition.ai/}{https://deepcognition.ai/}}, Google Colaboratory\footnote{\href{https://colab.research.google.com/}{https://colab.research.google.com/}}, etc,...
 
-BK.Synapse is open source and hosted at\\
+BK.Synapse is open source and hosted at
 \href{https://github.com/lanPN85/BK.Synapse}{https://github.com/lanPN85/BK.Synapse}.
 
 We shall describe BK.Synapse's design and technical implementation in the following sections.
@@ -75,7 +74,6 @@ The API server exposes an application programming interface via HTTP \gls{rest}.
 
 Worker nodes handle the bulk of calculations during training. Each node runs a background process called the node \gls{daemon}, collecting hardware status and notifying BK.Synapse of the node's availability.
 
-\FloatBarrier
 The data store (or root folder) is used as the shared data space between the API server and worker nodes. It points to a folder that is accessible from all nodes within the system, and contains all user-uploaded data as well as additional metadata. Several mechanisms can be employed to create the data store, namely:
 \begin{itemize}
     \item Using filesystem mount: The data store is created on one node, then mounted throughout the network using Linux's NFS or SMBD protocol. This provides good guarantees in terms of writes, however there may be overhead during training when data files need to be continually read.
@@ -127,6 +125,7 @@ The core BK.Synapse runtime is capable of embedding user-defined classes and fun
 
 These interfaces are meant to wrap around existing code using inheritance, thus preserving their original behavior and facilitate testing, while still conforming to BK.Synapse's specifications. On the other hand, simpler models and loaders can simply be written directly into the given class. Thus, adapting a model to BK.Synapse simply means writing extra classes that bridge the original network behaviors to the framework's standards.
 
+\begin{minipage}{\linewidth}
 \begin{lstlisting}[caption={An example UserModel wrapped around a simple CNN}]
 import torch
 import torch.nn as nn
@@ -165,9 +164,11 @@ class UserModel(Net):
             'accuracy': acc.item()
         }
 \end{lstlisting}
+\end{minipage}
 
 The mechanics for embedding user code is relatively simple, and is partially based on DIGITS' method for loading TensorFlow models. We use Python's built-in \lstinline{exec()} function, which can execute a string as Python code within the current environment. A major difference in our implementation is allowing relative imports from within the source directory. Since actual projects would have their code split into multiple files, this is a critical feature to ensure ease of use. We accomplish this by manipulating \gls{py}'s path object (\lstinline{sys.path}). The Python path is a list of filesystem paths that informs the interpreter òf where to look for modules. By inserting the source code root path to Python's path, we can emulate the user's environment and allow relative package loading. Once the neccessary modules are loaded, the injected path is removed to avoid pollution and/or conflict (Figure \ref{fig:codeload}).
 
+\begin{minipage}{\linewidth}
 \begin{lstlisting}[caption={Code loading logic for UserModel}]
 def load_model(self):
     model = None
@@ -187,6 +188,7 @@ def load_model(self):
     sys.path.remove(self.src_path)
     return model
 \end{lstlisting}
+\end{minipage}
 
 \begin{figure}[htp]
 	\centering
@@ -207,8 +209,10 @@ Horovod provides a set of utilities to leverage MPI and associated acceleration 
     \item A \lstinline{DistributedOptimizer} wrapper for PyTorch that allows networks to be updated over multiple nodes.
 \end{itemize}
 
-The training script is invoked using \lstinline{mpirun}, from a subprocess spawned by the API server when the start endpoint is called, making it the MPI monitor node. The server collects the selected worker nodes' IPs and generates a command as follow:
-\begin{lstlisting}[language=Bash]
+The training script is invoked using \lstinline{mpirun}, from a subprocess spawned by the API server when the start endpoint is called, making it the MPI monitor node. The server collects the selected worker nodes' IPs and generates a command as shown in Listing \ref{lst:shell}:
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language=Bash,caption={Shell command generated by the BK.Synapse API server},label={lst:shell}]
 mpirun --allow-run-as-root -bind-to none 
     -map-by slot -mca plm_rsh_args "-p 17992"\\
     -mca pml ob1 -mca btl ^openib\\
@@ -218,6 +222,7 @@ mpirun --allow-run-as-root -bind-to none
     python /usr/bin/bksynapse/pytorch/train.py\\
         --job-id d20db7d2-2f22-4f86-bbc7-8e93c5239132
 \end{lstlisting}
+\end{minipage}
 
 A lot of configuration is handled by BK.Synapse to ensure proper MPI communication between nodes, in regards to the \lstinline{-mca} options above. For more details, the training script for PyTorch can be found at \lstinline{bksynapse-base/bin/pytorch/train.py}.
 

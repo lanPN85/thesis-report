@@ -71,11 +71,13 @@
 
 \lstset{
     language=Python,
-    numbers=none,
+    numbers=left,
+    numberstyle=\small,
+    frame=single,
     tabsize=2,
     breaklines=true,
     basicstyle=\ttfamily\small,
-    captionpos=t,
+    captionpos=b,
     stringstyle=\color{magenta},
     keywordstyle=\color{blue}\bfseries,
     numberstyle=\color{black}
@@ -98,18 +100,12 @@
 \renewcommand{\baselinestretch}{1.2}
 
 % \setcounter{page}{3}
-\hypersetup{
-    colorlinks=true,
-    urlcolor=blue,
-    linkcolor=black}
 \graphicspath{ {images/} }
 \lhead{}
 \chead{}
 \rhead{}
 
 \makeglossaries
-% \input{acronyms}
-% \input{glossary}
 \loadglsentries[\acronymtype]{acronyms}
 \loadglsentries{glossary}
 
@@ -155,8 +151,8 @@
         \\ [2.25cm]
         \begin{tabular}{ l l }
             Author & : \textbf{Phan Ngoc Lan} \\
-            & : CNTT2-2 K59 \\
-            & : 20142505 \\ [0.5cm]
+            Class & : CNTT2-2 K59 \\
+            Student ID & : 20142505 \\ [0.5cm]
             Supervisor & : Dr \textbf{Dinh Viet Sang}
         \end{tabular} \\ [2.25cm]
         {\fontsize{17}{20}\selectfont HANOI, 5 - 2019}
